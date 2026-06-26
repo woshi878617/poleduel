@@ -1,0 +1,561 @@
+import os
+import json
+import sqlite3
+import secrets
+import hashlib
+from datetime import datetime
+from functools import wraps
+from flask import Flask, request, jsonify, g, send_from_directory
+
+app = Flask(__name__, static_folder='static', static_url_path='')
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'data.db')
+TOPICS_PATH = os.path.join(BASE_DIR, 'topics.json')
+
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+
+
+# ── Database ──────────────────────────────────────────────
+
+def get_db():
+    if 'db' not in g:
+        g.db = sqlite3.connect(DB_PATH)
+        g.db.row_factory = sqlite3.Row
+        g.db.execute("PRAGMA journal_mode=WAL")
+        g.db.execute("PRAGMA foreign_keys=ON")
+    return g.db
+
+
+@app.teardown_appcontext
+def close_db(exception):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
+
+
+def init_db():
+    db = sqlite3.connect(DB_PATH)
+    db.execute("PRAGMA foreign_keys=ON")
+    db.executescript("""
+        CREATE TABLE IF NOT EXISTS votes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic_id INTEGER NOT NULL,
+            option_index INTEGER NOT NULL,
+            ip_address TEXT NOT NULL,
+            voted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(topic_id, ip_address)
+        );
+
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            auth_type TEXT NOT NULL CHECK(auth_type IN ('guest', 'google')),
+            identifier TEXT NOT NULL,
+            display_name TEXT DEFAULT '',
+            avatar_url TEXT DEFAULT '',
+            token TEXT UNIQUE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS user_topics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            question TEXT NOT NULL,
+            options_json TEXT NOT NULL,
+            category TEXT DEFAULT 'General',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS user_topic_votes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic_id INTEGER NOT NULL,
+            option_index INTEGER NOT NULL,
+            ip_address TEXT NOT NULL,
+            voted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(topic_id, ip_address),
+            FOREIGN KEY(topic_id) REFERENCES user_topics(id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_users_token ON users(token);
+        CREATE INDEX IF NOT EXISTS idx_user_topics_user ON user_topics(user_id);
+    """)
+    db.commit()
+    db.close()
+
+
+# ── Auth helpers ──────────────────────────────────────────
+
+def generate_token():
+    return secrets.token_hex(32)
+
+
+def hash_ip(ip):
+    return hashlib.sha256((ip + 'vote-site-salt').encode()).hexdigest()
+
+
+def get_user_by_token(token):
+    db = get_db()
+    return db.execute("SELECT * FROM users WHERE token = ?", (token,)).fetchone()
+
+
+def require_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return jsonify({'error': 'Authentication required'}), 401
+        token = auth_header[7:]
+        user = get_user_by_token(token)
+        if not user:
+            return jsonify({'error': 'Invalid authentication'}), 401
+        g.current_user = user
+        return f(*args, **kwargs)
+    return decorated
+
+
+def get_client_ip():
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers['X-Forwarded-For'].split(',')[0].strip()
+    return request.remote_addr or '127.0.0.1'
+
+
+# ── Static ────────────────────────────────────────────────
+
+@app.route('/')
+def index():
+    return send_from_directory(app.static_folder, 'index.html')
+
+
+@app.route('/api/config')
+def api_config():
+    return jsonify({'google_client_id': GOOGLE_CLIENT_ID})
+
+
+# ── Preset topics ─────────────────────────────────────────
+
+def load_preset_topics():
+    with open(TOPICS_PATH, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+@app.route('/api/topics')
+def get_topics():
+    topics = load_preset_topics()
+    ip = get_client_ip()
+    db = get_db()
+    voted = db.execute(
+        "SELECT topic_id FROM votes WHERE ip_address = ?", (ip,)
+    ).fetchall()
+    voted_ids = {row['topic_id'] for row in voted}
+    result = []
+    for t in topics:
+        t['voted'] = t['id'] in voted_ids
+        result.append(t)
+    return jsonify(result)
+
+
+@app.route('/api/vote', methods=['POST'])
+def vote_preset():
+    data = request.get_json()
+    topic_id = data.get('topic_id')
+    option_index = data.get('option_index')
+
+    if topic_id is None or option_index is None:
+        return jsonify({'error': 'topic_id and option_index required'}), 400
+
+    topics = load_preset_topics()
+    topic = next((t for t in topics if t['id'] == topic_id), None)
+    if not topic:
+        return jsonify({'error': 'Topic not found'}), 404
+
+    if option_index < 0 or option_index >= len(topic['options']):
+        return jsonify({'error': 'Invalid option'}), 400
+
+    ip = get_client_ip()
+    db = get_db()
+    try:
+        db.execute(
+            "INSERT INTO votes (topic_id, option_index, ip_address) VALUES (?, ?, ?)",
+            (topic_id, option_index, ip)
+        )
+        db.commit()
+        return jsonify({'success': True, 'message': 'Vote recorded'})
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'You have already voted on this topic'}), 409
+
+
+@app.route('/api/stats/<int:topic_id>')
+def get_stats(topic_id):
+    topics = load_preset_topics()
+    topic = next((t for t in topics if t['id'] == topic_id), None)
+    if not topic:
+        return jsonify({'error': 'Topic not found'}), 404
+
+    db = get_db()
+    rows = db.execute(
+        "SELECT option_index, COUNT(*) as count FROM votes WHERE topic_id = ? GROUP BY option_index",
+        (topic_id,)
+    ).fetchall()
+
+    stats = {i: 0 for i in range(len(topic['options']))}
+    for r in rows:
+        stats[r['option_index']] = r['count']
+
+    result = {
+        'topic_id': topic_id,
+        'question': topic['question'],
+        'options': topic['options'],
+        'votes': [{'option': topic['options'][i], 'count': stats[i]} for i in range(len(topic['options']))],
+        'total': sum(stats.values())
+    }
+    return jsonify(result)
+
+
+@app.route('/api/my-votes')
+def my_votes():
+    ip = get_client_ip()
+    db = get_db()
+    rows = db.execute(
+        "SELECT topic_id, option_index, voted_at FROM votes WHERE ip_address = ? ORDER BY voted_at DESC",
+        (ip,)
+    ).fetchall()
+
+    topics = {t['id']: t for t in load_preset_topics()}
+    result = []
+    for r in rows:
+        t = topics.get(r['topic_id'])
+        if not t:
+            continue
+        stats_rows = db.execute(
+            "SELECT option_index, COUNT(*) as count FROM votes WHERE topic_id = ? GROUP BY option_index",
+            (r['topic_id'],)
+        ).fetchall()
+        stats = {i: 0 for i in range(len(t['options']))}
+        for s in stats_rows:
+            stats[s['option_index']] = s['count']
+
+        result.append({
+            'topic_id': r['topic_id'],
+            'question': t['question'],
+            'category': t['category'],
+            'options': t['options'],
+            'your_choice': r['option_index'],
+            'your_answer': t['options'][r['option_index']],
+            'voted_at': r['voted_at'],
+            'total_votes': sum(stats.values()),
+            'stats': [{'option': t['options'][i], 'count': stats[i]} for i in range(len(t['options']))]
+        })
+    return jsonify(result)
+
+
+@app.route('/api/reset-ip', methods=['POST'])
+def reset_ip():
+    ip = get_client_ip()
+    db = get_db()
+    db.execute("DELETE FROM votes WHERE ip_address = ?", (ip,))
+    db.commit()
+    return jsonify({'success': True, 'message': 'IP voting records cleared'})
+
+
+# ── Auth ──────────────────────────────────────────────────
+
+@app.route('/api/auth/guest', methods=['POST'])
+def auth_guest():
+    ip = get_client_ip()
+    identifier = hash_ip(ip)
+    db = get_db()
+
+    existing = db.execute(
+        "SELECT * FROM users WHERE auth_type = 'guest' AND identifier = ?",
+        (identifier,)
+    ).fetchone()
+
+    if existing:
+        return jsonify({
+            'token': existing['token'],
+            'user': user_to_dict(existing)
+        })
+
+    token = generate_token()
+    display_name = f"Guest-{ip.split('.')[-1]}"
+    db.execute(
+        "INSERT INTO users (auth_type, identifier, token, display_name) VALUES (?, ?, ?, ?)",
+        ('guest', identifier, token, display_name)
+    )
+    db.commit()
+
+    user = db.execute("SELECT * FROM users WHERE token = ?", (token,)).fetchone()
+    return jsonify({'token': token, 'user': user_to_dict(user)}), 201
+
+
+@app.route('/api/auth/google', methods=['POST'])
+def auth_google():
+    if not GOOGLE_CLIENT_ID:
+        return jsonify({'error': 'Google Sign-In is not configured on this server'}), 501
+
+    data = request.get_json()
+    credential = data.get('credential')
+
+    if not credential:
+        return jsonify({'error': 'Missing Google credential'}), 400
+
+    try:
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
+
+        idinfo = id_token.verify_oauth2_token(
+            credential,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID
+        )
+
+        google_id = idinfo['sub']
+        email = idinfo.get('email', '')
+        name = idinfo.get('name', email)
+        picture = idinfo.get('picture', '')
+
+    except ValueError as e:
+        return jsonify({'error': f'Invalid Google token: {str(e)}'}), 401
+    except ImportError:
+        return jsonify({'error': 'Server not configured for Google auth (google-auth not installed)'}), 501
+
+    db = get_db()
+    existing = db.execute(
+        "SELECT * FROM users WHERE auth_type = 'google' AND identifier = ?",
+        (google_id,)
+    ).fetchone()
+
+    if existing:
+        db.execute(
+            "UPDATE users SET display_name = ?, avatar_url = ? WHERE id = ?",
+            (name, picture, existing['id'])
+        )
+        db.commit()
+        return jsonify({'token': existing['token'], 'user': user_to_dict(existing)})
+
+    token = generate_token()
+    db.execute(
+        "INSERT INTO users (auth_type, identifier, token, display_name, avatar_url) VALUES (?, ?, ?, ?, ?)",
+        ('google', google_id, token, name, picture)
+    )
+    db.commit()
+
+    user = db.execute("SELECT * FROM users WHERE token = ?", (token,)).fetchone()
+    return jsonify({'token': token, 'user': user_to_dict(user)}), 201
+
+
+@app.route('/api/auth/me')
+@require_auth
+def auth_me():
+    return jsonify({'user': user_to_dict(g.current_user)})
+
+
+def user_to_dict(user):
+    return {
+        'id': user['id'],
+        'auth_type': user['auth_type'],
+        'display_name': user['display_name'],
+        'avatar_url': user['avatar_url'],
+        'created_at': user['created_at']
+    }
+
+
+# ── User topics ───────────────────────────────────────────
+
+@app.route('/api/user-topics', methods=['POST'])
+@require_auth
+def create_user_topic():
+    data = request.get_json()
+    question = data.get('question', '').strip()
+    options = data.get('options', [])
+    category = data.get('category', 'General')
+
+    if not question:
+        return jsonify({'error': 'Question is required'}), 400
+    if len(options) < 2:
+        return jsonify({'error': 'At least 2 options required'}), 400
+    if len(options) > 10:
+        return jsonify({'error': 'Maximum 10 options allowed'}), 400
+
+    options = [o.strip() for o in options if o.strip()]
+    if len(options) < 2:
+        return jsonify({'error': 'Need at least 2 non-empty options'}), 400
+
+    db = get_db()
+    db.execute(
+        "INSERT INTO user_topics (user_id, question, options_json, category) VALUES (?, ?, ?, ?)",
+        (g.current_user['id'], question, json.dumps(options), category)
+    )
+    db.commit()
+
+    topic_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+    return jsonify({
+        'success': True,
+        'topic': {
+            'id': topic_id,
+            'question': question,
+            'options': options,
+            'category': category,
+            'created_at': datetime.utcnow().isoformat()
+        }
+    }), 201
+
+
+@app.route('/api/user-topics/mine')
+@require_auth
+def my_user_topics():
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM user_topics WHERE user_id = ? ORDER BY created_at DESC",
+        (g.current_user['id'],)
+    ).fetchall()
+
+    result = []
+    for r in rows:
+        options = json.loads(r['options_json'])
+        vr = db.execute(
+            "SELECT option_index, COUNT(*) as count FROM user_topic_votes WHERE topic_id = ? GROUP BY option_index",
+            (r['id'],)
+        ).fetchall()
+        stats = {i: 0 for i in range(len(options))}
+        for v in vr:
+            stats[v['option_index']] = v['count']
+
+        result.append({
+            'id': r['id'],
+            'question': r['question'],
+            'options': options,
+            'category': r['category'],
+            'created_at': r['created_at'],
+            'total_votes': sum(stats.values()),
+            'votes': [{'option': options[i], 'count': stats[i]} for i in range(len(options))]
+        })
+    return jsonify(result)
+
+
+@app.route('/api/user-topics/all')
+def all_user_topics():
+    db = get_db()
+    rows = db.execute(
+        "SELECT ut.*, u.display_name, u.avatar_url FROM user_topics ut JOIN users u ON ut.user_id = u.id ORDER BY ut.created_at DESC"
+    ).fetchall()
+
+    ip = get_client_ip()
+    result = []
+    for r in rows:
+        options = json.loads(r['options_json'])
+        already_voted = db.execute(
+            "SELECT option_index FROM user_topic_votes WHERE topic_id = ? AND ip_address = ?",
+            (r['id'], ip)
+        ).fetchone()
+
+        vr = db.execute(
+            "SELECT option_index, COUNT(*) as count FROM user_topic_votes WHERE topic_id = ? GROUP BY option_index",
+            (r['id'],)
+        ).fetchall()
+        stats = {i: 0 for i in range(len(options))}
+        for v in vr:
+            stats[v['option_index']] = v['count']
+
+        result.append({
+            'id': r['id'],
+            'question': r['question'],
+            'options': options,
+            'category': r['category'],
+            'created_at': r['created_at'],
+            'author_name': r['display_name'],
+            'author_avatar': r['avatar_url'],
+            'total_votes': sum(stats.values()),
+            'votes': [{'option': options[i], 'count': stats[i]} for i in range(len(options))],
+            'voted': already_voted is not None,
+            'your_choice': already_voted['option_index'] if already_voted else None
+        })
+    return jsonify(result)
+
+
+@app.route('/api/user-topics/<int:topic_id>/stats')
+def user_topic_stats(topic_id):
+    db = get_db()
+    row = db.execute("SELECT * FROM user_topics WHERE id = ?", (topic_id,)).fetchone()
+    if not row:
+        return jsonify({'error': 'Topic not found'}), 404
+
+    options = json.loads(row['options_json'])
+    vr = db.execute(
+        "SELECT option_index, COUNT(*) as count FROM user_topic_votes WHERE topic_id = ? GROUP BY option_index",
+        (topic_id,)
+    ).fetchall()
+    stats = {i: 0 for i in range(len(options))}
+    for v in vr:
+        stats[v['option_index']] = v['count']
+
+    return jsonify({
+        'id': row['id'],
+        'question': row['question'],
+        'options': options,
+        'votes': [{'option': options[i], 'count': stats[i]} for i in range(len(options))],
+        'total': sum(stats.values())
+    })
+
+
+@app.route('/api/user-topics/<int:topic_id>/vote', methods=['POST'])
+def vote_user_topic(topic_id):
+    data = request.get_json()
+    option_index = data.get('option_index')
+
+    if option_index is None:
+        return jsonify({'error': 'option_index required'}), 400
+
+    db = get_db()
+    row = db.execute("SELECT * FROM user_topics WHERE id = ?", (topic_id,)).fetchone()
+    if not row:
+        return jsonify({'error': 'Topic not found'}), 404
+
+    options = json.loads(row['options_json'])
+    if option_index < 0 or option_index >= len(options):
+        return jsonify({'error': 'Invalid option'}), 400
+
+    ip = get_client_ip()
+    try:
+        db.execute(
+            "INSERT INTO user_topic_votes (topic_id, option_index, ip_address) VALUES (?, ?, ?)",
+            (topic_id, option_index, ip)
+        )
+        db.commit()
+        return jsonify({'success': True, 'message': 'Vote recorded'})
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'You have already voted on this topic'}), 409
+
+
+@app.route('/api/user-topics/<int:topic_id>', methods=['DELETE'])
+@require_auth
+def delete_user_topic(topic_id):
+    db = get_db()
+    row = db.execute("SELECT * FROM user_topics WHERE id = ? AND user_id = ?",
+                     (topic_id, g.current_user['id'])).fetchone()
+    if not row:
+        return jsonify({'error': 'Topic not found or not yours'}), 404
+
+    db.execute("DELETE FROM user_topics WHERE id = ?", (topic_id,))
+    db.commit()
+    return jsonify({'success': True, 'message': 'Topic deleted'})
+
+
+# ── Main ──────────────────────────────────────────────────
+
+# Auto-initialize database on import (for gunicorn)
+init_db()
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 8080))
+    print("═" * 50)
+    print("  ControveRUS Vote Platform")
+    print(f"  http://0.0.0.0:{port}")
+    if GOOGLE_CLIENT_ID:
+        print(f"  Google Sign-In: ENABLED")
+    else:
+        print(f"  Google Sign-In: NOT CONFIGURED")
+        print(f"  Set GOOGLE_CLIENT_ID env var to enable")
+    print("═" * 50)
+    app.run(host='0.0.0.0', port=port, debug=False)

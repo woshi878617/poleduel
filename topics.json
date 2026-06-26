@@ -1,0 +1,182 @@
+[
+  {
+    "id": 1,
+    "question": "Messi or Ronaldo?",
+    "options": ["Team Messi", "Team Ronaldo", "Neither", "Both are great"],
+    "category": "Sports"
+  },
+  {
+    "id": 2,
+    "question": "Is Israel's military action in Gaza justified?",
+    "options": ["Yes, it is justified", "No, it is not", "Too complex to judge"],
+    "category": "World"
+  },
+  {
+    "id": 3,
+    "question": "Do you sympathize with the Palestinian people?",
+    "options": ["Very much", "Somewhat", "No", "Not informed enough"],
+    "category": "World"
+  },
+  {
+    "id": 4,
+    "question": "Is China a force for good in global affairs?",
+    "options": ["Yes", "No", "Depends on the situation"],
+    "category": "World"
+  },
+  {
+    "id": 5,
+    "question": "Is AI development more beneficial or dangerous for humanity?",
+    "options": ["More beneficial", "More dangerous", "Equal parts", "Too early to tell"],
+    "category": "Technology"
+  },
+  {
+    "id": 6,
+    "question": "Do you support Universal Basic Income (UBI)?",
+    "options": ["Fully support", "Conditionally support", "Do not support", "Not familiar"],
+    "category": "Economy"
+  },
+  {
+    "id": 7,
+    "question": "Should TikTok be banned?",
+    "options": ["Yes, ban it", "No, keep it", "Depends on the country"],
+    "category": "Technology"
+  },
+  {
+    "id": 8,
+    "question": "Is nuclear energy the best solution to climate change?",
+    "options": ["Yes", "No, better alternatives exist", "Nuclear is too dangerous"],
+    "category": "Environment"
+  },
+  {
+    "id": 9,
+    "question": "Do you believe in extraterrestrial intelligent life?",
+    "options": ["Yes", "No", "Uncertain"],
+    "category": "Science"
+  },
+  {
+    "id": 10,
+    "question": "Is remote work better than working in an office?",
+    "options": ["Remote is better", "Office is better", "Hybrid is best"],
+    "category": "Society"
+  },
+  {
+    "id": 11,
+    "question": "On the Russia-Ukraine war, which side are you on?",
+    "options": ["Support Ukraine", "Support Russia", "Stay neutral", "Hope for peace talks"],
+    "category": "World"
+  },
+  {
+    "id": 12,
+    "question": "Is globalization a good thing?",
+    "options": ["Yes", "No", "Pros and cons both"],
+    "category": "Economy"
+  },
+  {
+    "id": 13,
+    "question": "Do you support the death penalty?",
+    "options": ["Support", "Oppose", "Depends on the crime"],
+    "category": "Society"
+  },
+  {
+    "id": 14,
+    "question": "Is social media's impact on society positive or negative?",
+    "options": ["Mostly positive", "Mostly negative", "Roughly equal"],
+    "category": "Society"
+  },
+  {
+    "id": 15,
+    "question": "Are electric vehicles truly greener than gas cars?",
+    "options": ["Yes", "No, manufacturing and power generation pollute too", "Depends on the electricity source"],
+    "category": "Environment"
+  },
+  {
+    "id": 16,
+    "question": "Should genetically modified foods be banned?",
+    "options": ["Yes, ban them", "No, don't ban", "Regulate but don't ban"],
+    "category": "Science"
+  },
+  {
+    "id": 17,
+    "question": "Is Bitcoin the future of money or a bubble?",
+    "options": ["Future of money", "Pure bubble", "Has potential but risky"],
+    "category": "Economy"
+  },
+  {
+    "id": 18,
+    "question": "Is a college degree still worth the cost?",
+    "options": ["Yes, worth it", "No, terrible ROI", "Depends on the major"],
+    "category": "Society"
+  },
+  {
+    "id": 19,
+    "question": "Should humanity establish a colony on Mars?",
+    "options": ["Yes, it's our future", "No, fix Earth first", "Pursue both paths"],
+    "category": "Science"
+  },
+  {
+    "id": 20,
+    "question": "Do you support mandatory vaccination?",
+    "options": ["Yes", "No, it should be voluntary", "Depends on severity"],
+    "category": "Society"
+  },
+  {
+    "id": 21,
+    "question": "Should China reunify with Taiwan by force?",
+    "options": ["Yes", "No", "Hope for peaceful reunification", "Taiwan should be independent"],
+    "category": "World"
+  },
+  {
+    "id": 22,
+    "question": "Should the rich pay significantly higher taxes?",
+    "options": ["Yes, much higher", "Keep current rates", "Lower taxes for all"],
+    "category": "Economy"
+  },
+  {
+    "id": 23,
+    "question": "Is veganism the future of food?",
+    "options": ["Yes", "No", "Will be one of the mainstreams"],
+    "category": "Society"
+  },
+  {
+    "id": 24,
+    "question": "Should esports be considered real sports?",
+    "options": ["Yes", "No", "It's a competition, not a sport"],
+    "category": "Sports"
+  },
+  {
+    "id": 25,
+    "question": "Has America's global influence been positive or negative?",
+    "options": ["Mostly positive", "Mostly negative", "Mixed", "Depends on the era"],
+    "category": "World"
+  },
+  {
+    "id": 26,
+    "question": "Should self-driving cars be allowed on public roads?",
+    "options": ["Yes, fully allow", "Allow with restrictions", "No, too risky"],
+    "category": "Technology"
+  },
+  {
+    "id": 27,
+    "question": "Do you support euthanasia legalization?",
+    "options": ["Support", "Oppose", "Conditionally support"],
+    "category": "Society"
+  },
+  {
+    "id": 28,
+    "question": "Will cash disappear within 20 years?",
+    "options": ["Yes", "No", "Decline sharply but not disappear"],
+    "category": "Economy"
+  },
+  {
+    "id": 29,
+    "question": "Is AI-generated art real art?",
+    "options": ["Yes", "No", "Partially"],
+    "category": "Technology"
+  },
+  {
+    "id": 30,
+    "question": "Do you support Japan releasing treated Fukushima water into the Pacific?",
+    "options": ["Yes, it meets safety standards", "No, there are risks", "Need more independent verification"],
+    "category": "Environment"
+  }
+]
