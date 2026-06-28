@@ -77,8 +77,19 @@ def init_db():
             FOREIGN KEY(topic_id) REFERENCES user_topics(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS favorites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            topic_type TEXT NOT NULL CHECK(topic_type IN ('preset', 'user')),
+            topic_id INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, topic_type, topic_id),
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
         CREATE INDEX IF NOT EXISTS idx_users_token ON users(token);
         CREATE INDEX IF NOT EXISTS idx_user_topics_user ON user_topics(user_id);
+        CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);
     """)
     db.commit()
     db.close()
@@ -351,6 +362,66 @@ def auth_me():
     return jsonify({'user': user_to_dict(g.current_user)})
 
 
+@app.route('/api/auth/bind-google', methods=['POST'])
+@require_auth
+def bind_google():
+    """Bind a Google account to the current guest user, upgrading to Google auth."""
+    if g.current_user['auth_type'] != 'guest':
+        return jsonify({'error': 'Only guest accounts can bind Google. Current account is already bound.'}), 400
+
+    if not GOOGLE_CLIENT_ID:
+        return jsonify({'error': 'Google Sign-In is not configured on this server'}), 501
+
+    data = request.get_json()
+    credential = data.get('credential')
+    if not credential:
+        return jsonify({'error': 'Missing Google credential'}), 400
+
+    try:
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
+
+        idinfo = id_token.verify_oauth2_token(
+            credential,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID
+        )
+
+        google_id = idinfo['sub']
+        email = idinfo.get('email', '')
+        name = idinfo.get('name', email)
+        picture = idinfo.get('picture', '')
+
+    except ValueError as e:
+        return jsonify({'error': f'Invalid Google token: {str(e)}'}), 401
+    except ImportError:
+        return jsonify({'error': 'Server not configured for Google auth (google-auth not installed)'}), 501
+
+    db = get_db()
+
+    # Check if this Google account is already used by another user
+    existing_google = db.execute(
+        "SELECT * FROM users WHERE auth_type = 'google' AND identifier = ?",
+        (google_id,)
+    ).fetchone()
+
+    if existing_google:
+        if existing_google['id'] == g.current_user['id']:
+            return jsonify({'error': 'This Google account is already bound to your account'}), 400
+        return jsonify({'error': 'This Google account is already linked to another account'}), 409
+
+    # Upgrade current guest user to Google
+    db.execute(
+        "UPDATE users SET auth_type = 'google', identifier = ?, display_name = ?, avatar_url = ? WHERE id = ?",
+        (google_id, name, picture, g.current_user['id'])
+    )
+    db.commit()
+
+    # Refresh user data
+    user = db.execute("SELECT * FROM users WHERE id = ?", (g.current_user['id'],)).fetchone()
+    return jsonify({'token': user['token'], 'user': user_to_dict(user)})
+
+
 def user_to_dict(user):
     return {
         'id': user['id'],
@@ -383,6 +454,16 @@ def create_user_topic():
         return jsonify({'error': 'Need at least 2 non-empty options'}), 400
 
     db = get_db()
+
+    # Check daily limit (3 per day)
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+    daily_count = db.execute(
+        "SELECT COUNT(*) FROM user_topics WHERE user_id = ? AND date(created_at) = ?",
+        (g.current_user['id'], today)
+    ).fetchone()[0]
+    if daily_count >= 3:
+        return jsonify({'error': 'Daily limit reached (3 polls per day)', 'remaining': 0}), 429
+
     db.execute(
         "INSERT INTO user_topics (user_id, question, options_json, category) VALUES (?, ?, ?, ?)",
         (g.current_user['id'], question, json.dumps(options), category)
@@ -540,6 +621,120 @@ def delete_user_topic(topic_id):
     db.execute("DELETE FROM user_topics WHERE id = ?", (topic_id,))
     db.commit()
     return jsonify({'success': True, 'message': 'Topic deleted'})
+
+
+@app.route('/api/user-topics/daily-remaining')
+@require_auth
+def daily_remaining():
+    db = get_db()
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+    daily_count = db.execute(
+        "SELECT COUNT(*) FROM user_topics WHERE user_id = ? AND date(created_at) = ?",
+        (g.current_user['id'], today)
+    ).fetchone()[0]
+    return jsonify({'used': daily_count, 'remaining': max(0, 3 - daily_count), 'limit': 3})
+
+
+# ── Favorites ─────────────────────────────────────────────
+
+@app.route('/api/favorites', methods=['POST'])
+@require_auth
+def add_favorite():
+    data = request.get_json()
+    topic_type = data.get('topic_type')
+    topic_id = data.get('topic_id')
+
+    if topic_type not in ('preset', 'user'):
+        return jsonify({'error': 'topic_type must be "preset" or "user"'}), 400
+    if topic_id is None:
+        return jsonify({'error': 'topic_id required'}), 400
+
+    db = get_db()
+
+    # Verify topic exists
+    if topic_type == 'preset':
+        topics = load_preset_topics()
+        topic = next((t for t in topics if t['id'] == topic_id), None)
+        if not topic:
+            return jsonify({'error': 'Topic not found'}), 404
+    else:
+        row = db.execute("SELECT * FROM user_topics WHERE id = ?", (topic_id,)).fetchone()
+        if not row:
+            return jsonify({'error': 'Topic not found'}), 404
+
+    try:
+        db.execute(
+            "INSERT INTO favorites (user_id, topic_type, topic_id) VALUES (?, ?, ?)",
+            (g.current_user['id'], topic_type, topic_id)
+        )
+        db.commit()
+        return jsonify({'success': True, 'message': 'Added to favorites'}), 201
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Already in favorites'}), 409
+
+
+@app.route('/api/favorites', methods=['DELETE'])
+@require_auth
+def remove_favorite():
+    data = request.get_json()
+    topic_type = data.get('topic_type')
+    topic_id = data.get('topic_id')
+
+    if topic_type not in ('preset', 'user'):
+        return jsonify({'error': 'topic_type must be "preset" or "user"'}), 400
+    if topic_id is None:
+        return jsonify({'error': 'topic_id required'}), 400
+
+    db = get_db()
+    db.execute(
+        "DELETE FROM favorites WHERE user_id = ? AND topic_type = ? AND topic_id = ?",
+        (g.current_user['id'], topic_type, topic_id)
+    )
+    db.commit()
+    return jsonify({'success': True, 'message': 'Removed from favorites'})
+
+
+@app.route('/api/favorites')
+@require_auth
+def list_favorites():
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM favorites WHERE user_id = ? ORDER BY created_at DESC",
+        (g.current_user['id'],)
+    ).fetchall()
+
+    preset_topics = load_preset_topics()
+    result = []
+
+    for r in rows:
+        if r['topic_type'] == 'preset':
+            topic = next((t for t in preset_topics if t['id'] == r['topic_id']), None)
+            if not topic:
+                continue
+            result.append({
+                'fav_id': r['id'],
+                'topic_type': 'preset',
+                'topic_id': r['topic_id'],
+                'question': topic['question'],
+                'options': topic['options'],
+                'category': topic['category'],
+                'created_at': r['created_at']
+            })
+        else:
+            ut = db.execute("SELECT * FROM user_topics WHERE id = ?", (r['topic_id'],)).fetchone()
+            if not ut:
+                continue
+            result.append({
+                'fav_id': r['id'],
+                'topic_type': 'user',
+                'topic_id': r['topic_id'],
+                'question': ut['question'],
+                'options': json.loads(ut['options_json']),
+                'category': ut['category'],
+                'created_at': r['created_at']
+            })
+
+    return jsonify(result)
 
 
 # ── Main ──────────────────────────────────────────────────

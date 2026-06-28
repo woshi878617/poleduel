@@ -98,6 +98,7 @@
                 <button id="submitPollBtn" class="btn-primary">Publish Poll</button>
             </div>
             <p id="createMsg" class="form-msg hidden"></p>
+            <p id="dailyRemaining" class="form-hint" style="margin-top:6px;"></p>
         </div>
     </section>
 
@@ -125,8 +126,21 @@
         </div>
     </div>
 
+    <!-- My Favorites Panel (slide from right) -->
+    <div id="favoritesOverlay" class="panel-overlay hidden"></div>
+    <div id="favoritesPanel" class="panel-slide hidden">
+        <div class="panel-header">
+            <h3>My Favorites</h3>
+            <button id="closeFavoritesBtn" class="btn-close-panel">&times;</button>
+        </div>
+        <div id="favoritesList" class="panel-list">
+            <p class="empty-msg">Loading your favorites...</p>
+        </div>
+    </div>
+
     <!-- Bottom action bar -->
     <div class="action-bar" id="actionBar">
+        <button id="favoritesBtn" class="btn-action hidden">Favorites</button>
         <button id="historyBtn" class="btn-action">My Votes</button>
         <button id="myPollsBtn" class="btn-action hidden">My Polls</button>
     </div>
