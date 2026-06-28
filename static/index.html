@@ -37,7 +37,6 @@
     <!-- Tab Bar -->
     <nav class="tab-bar">
         <button class="tab-btn active" data-tab="preset">Hot Topics</button>
-        <button class="tab-btn" data-tab="community">Community Polls</button>
         <button id="createPollTab" class="tab-btn tab-cta hidden" data-tab="create">+ Create Poll</button>
     </nav>
 
@@ -48,13 +47,6 @@
             <button id="prevBtn" class="btn-nav">&larr; Previous</button>
             <span id="progressLabel" class="progress-label"></span>
             <button id="nextBtn" class="btn-nav">Next &rarr;</button>
-        </div>
-    </section>
-
-    <!-- Community Polls Tab -->
-    <section id="tab-community" class="tab-content">
-        <div id="communityList" class="community-list">
-            <p class="empty-msg">Loading community polls...</p>
         </div>
     </section>
 
@@ -140,9 +132,9 @@
 
     <!-- Bottom action bar -->
     <div class="action-bar" id="actionBar">
-        <button id="favoritesBtn" class="btn-action hidden">Favorites</button>
-        <button id="historyBtn" class="btn-action">My Votes</button>
-        <button id="myPollsBtn" class="btn-action hidden">My Polls</button>
+        <button id="favoritesBtn" class="btn-action action-fav hidden">&#9733; Favorites</button>
+        <button id="historyBtn" class="btn-action action-votes">&#10003; My Votes</button>
+        <button id="myPollsBtn" class="btn-action action-polls hidden">&#9776; My Polls</button>
     </div>
 
     <!-- Google client ID config (set by server or default) -->

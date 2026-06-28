@@ -156,10 +156,6 @@ async function loadFavoriteStates() {
         if (res.ok) {
             const favs = await res.json();
             favoriteIds = new Set(favs.map(f => `${f.topic_type}:${f.topic_id}`));
-            // Re-render if community tab is active
-            if ($('#tab-community').classList.contains('active')) {
-                renderCommunity();
-            }
             renderCards();
         }
     } catch(e) { /* ignore */ }
@@ -246,7 +242,6 @@ function switchTab(tab) {
     tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     tabContents.forEach(c => c.classList.toggle('active', c.id === `tab-${tab}`));
 
-    if (tab === 'community') loadCommunity();
     if (tab === 'create') resetCreateForm();
 }
 
@@ -368,98 +363,6 @@ function navigate(direction) {
     }, 400);
 }
 
-// ── Community Polls ─────────────────────────────────────
-async function loadCommunity() {
-    const list = $('#communityList');
-    list.innerHTML = '<p class="empty-msg">Loading community polls...</p>';
-
-    try {
-        const res = await fetch('/api/user-topics/all');
-        userTopics = await res.json();
-        renderCommunity();
-    } catch(e) {
-        list.innerHTML = '<p class="empty-msg">Failed to load community polls</p>';
-    }
-}
-
-function renderCommunity() {
-    const list = $('#communityList');
-    if (userTopics.length === 0) {
-        list.innerHTML = '<p class="empty-msg">No community polls yet.<br>Be the first to create one!</p>';
-        return;
-    }
-
-    list.innerHTML = userTopics.map(ut => {
-        const maxVotes = Math.max(...ut.votes.map(v => v.count), 1);
-        const isFav = favoriteIds.has(`user:${ut.id}`);
-        return `
-        <div class="community-card" id="community-${ut.id}">
-            <div class="cc-header">
-                <div class="cc-author">
-                    ${ut.author_avatar ? `<img src="${ut.author_avatar}" alt="">` : ''}
-                    <span>${escapeHtml(ut.author_name)}</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <button class="btn-fav ${isFav ? 'faved' : ''}" onclick="toggleFavorite('user', ${ut.id})" title="${isFav ? 'Unfavorite' : 'Favorite'}">${isFav ? '★' : '☆'}</button>
-                    <span class="cc-category">${escapeHtml(ut.category)}</span>
-                </div>
-            </div>
-            <div class="cc-question">${escapeHtml(ut.question)}</div>
-            <div class="cc-options">
-                ${ut.options.map((opt, oi) => `
-                    <div class="cc-option ${ut.voted ? 'voted' : ''} ${ut._chosen === oi ? 'chosen' : ''}"
-                         data-topic="${ut.id}" data-option="${oi}"
-                         style="${ut.voted ? '' : 'cursor:pointer'}">
-                        ${ut.voted ? `<div class="cc-option-bar" style="width:${maxVotes ? (ut.votes[oi].count/maxVotes*100) : 0}%"></div>` : ''}
-                        <span class="cc-option-text">${escapeHtml(opt)}</span>
-                        ${ut.voted ? `<span class="cc-option-count">${ut.votes[oi].count}</span>` : ''}
-                    </div>
-                `).join('')}
-            </div>
-            ${ut.voted ? `
-            <div class="cc-stats">
-                ${ut.votes.map((v, vi) => `
-                    <div class="cc-stat-row">
-                        <span class="cc-stat-label">${escapeHtml(v.option)}</span>
-                        <div class="cc-stat-track"><div class="cc-stat-fill" style="width:${ut.total_votes ? (v.count/ut.total_votes*100) : 0}%"></div></div>
-                        <span class="cc-stat-count">${v.count}</span>
-                    </div>
-                `).join('')}
-            </div>` : ''}
-            <div style="font-size:11px;color:var(--text-dim);margin-top:8px;">${ut.total_votes} vote${ut.total_votes !== 1 ? 's' : ''} &middot; ${new Date(ut.created_at).toLocaleDateString()}</div>
-        </div>`;
-    }).join('');
-
-    // Attach vote listeners
-    list.querySelectorAll('.cc-option').forEach(opt => {
-        if (opt.classList.contains('voted')) return;
-        opt.addEventListener('click', async () => {
-            const tid = parseInt(opt.dataset.topic);
-            const oi = parseInt(opt.dataset.option);
-            await handleCommunityVote(tid, oi);
-        });
-    });
-}
-
-async function handleCommunityVote(topicId, optionIndex) {
-    try {
-        const res = await fetch(`/api/user-topics/${topicId}/vote`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ option_index: optionIndex })
-        });
-        const data = await res.json();
-        if (data.success) {
-            // Refresh community list
-            await loadCommunity();
-        } else {
-            alert(data.error || 'Vote failed');
-        }
-    } catch(e) {
-        alert('Network error');
-    }
-}
-
 // ── Create Poll ─────────────────────────────────────────
 function resetCreateForm() {
     $('#pollQuestion').value = '';
@@ -563,8 +466,8 @@ async function submitPoll() {
             resetCreateForm();
             // Update daily remaining
             fetchDailyRemaining();
-            // Switch to community tab
-            setTimeout(() => switchTab('community'), 1200);
+            // Switch to Hot Topics tab
+            setTimeout(() => switchTab('preset'), 1200);
         } else if (res.status === 429) {
             showCreateMsg(data.error || 'Daily limit reached (3 polls per day)', 'error');
         } else if (res.status === 401) {
@@ -812,7 +715,6 @@ async function toggleFavorite(topicType, topicId) {
         }
         // Re-render current views
         renderCards();
-        if ($('#tab-community').classList.contains('active')) renderCommunity();
     } catch(e) {
         // ignore
     }
@@ -829,7 +731,6 @@ async function removeFavorite(topicType, topicId) {
         favoriteIds.delete(key);
         loadFavorites();
         renderCards();
-        if ($('#tab-community').classList.contains('active')) renderCommunity();
     } catch(e) { /* ignore */ }
 }
 
