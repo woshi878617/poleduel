@@ -285,6 +285,11 @@ function renderCards() {
                         <span class="stat-count">${s.count || 0}</span>
                     </div>
                 `).join('')}
+            </div>
+            <div class="card-actions">
+                <button class="btn-push" data-topic="${t.id}" data-action="push">🔥 Push</button>
+                <span class="card-heat" id="heat-${t.id}">${t.heat || 100}</span>
+                <button class="btn-skip" data-topic="${t.id}" data-action="skip">Skip →</button>
             </div>`;
 
         cardStack.appendChild(card);
@@ -298,6 +303,26 @@ function renderCards() {
                 await handleVote(tid, oi);
             });
         });
+
+        // Push click
+        const pushBtn = card.querySelector('.btn-push');
+        if (pushBtn) {
+            pushBtn.addEventListener('click', async () => {
+                if (isAnimating) return;
+                const tid = parseInt(pushBtn.dataset.topic);
+                await handlePush(tid, pushBtn);
+            });
+        }
+
+        // Skip click
+        const skipBtn = card.querySelector('.btn-skip');
+        if (skipBtn) {
+            skipBtn.addEventListener('click', async () => {
+                if (isAnimating) return;
+                const tid = parseInt(skipBtn.dataset.topic);
+                await handleSkip(tid);
+            });
+        }
     });
 
     progressLabel.textContent = `${currentIndex + 1} / ${topics.length}`;
@@ -317,6 +342,7 @@ async function handleVote(topicId, optionIndex) {
             if (topic) {
                 topic.voted = true;
                 topic._chosen = optionIndex;
+                topic.heat = (topic.heat || 100) + 2;
                 // Fetch stats
                 const sr = await fetch(`/api/stats/${topicId}`);
                 const statsData = await sr.json();
@@ -336,6 +362,61 @@ async function handleVote(topicId, optionIndex) {
         }
     } catch(e) {
         alert('Network error. Please try again.');
+    }
+}
+
+async function handlePush(topicId, buttonEl) {
+    if (!authToken) {
+        alert('Please sign in to Push topics.');
+        loginModal.classList.remove('hidden');
+        return;
+    }
+    try {
+        const res = await fetch(`/api/topics/${topicId}/push`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success) {
+            const topic = topics.find(t => t.id === topicId);
+            if (topic) topic.heat = data.heat;
+            buttonEl.textContent = 'Pushed ✓';
+            buttonEl.disabled = true;
+            buttonEl.classList.add('pushed');
+            const heatEl = document.getElementById(`heat-${topicId}`);
+            if (heatEl) heatEl.textContent = data.heat;
+        } else if (res.status === 429) {
+            buttonEl.textContent = 'Pushed ✓';
+            buttonEl.disabled = true;
+            buttonEl.classList.add('pushed');
+        } else {
+            alert(data.error || 'Push failed');
+        }
+    } catch(e) {
+        alert('Network error. Please try again.');
+    }
+}
+
+async function handleSkip(topicId) {
+    try {
+        const res = await fetch(`/api/topics/${topicId}/skip`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success) {
+            const topic = topics.find(t => t.id === topicId);
+            if (topic) topic.heat = data.heat;
+            // Jump to next card
+            if (currentIndex < topics.length - 1) {
+                navigate(1);
+            }
+        }
+    } catch(e) {
+        // Silently fail for skip - just navigate
+        if (currentIndex < topics.length - 1) {
+            navigate(1);
+        }
     }
 }
 

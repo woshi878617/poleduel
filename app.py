@@ -87,12 +87,45 @@ def init_db():
             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS topic_heat (
+            topic_id INTEGER PRIMARY KEY,
+            heat INTEGER DEFAULT 100
+        );
+
+        CREATE TABLE IF NOT EXISTS push_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic_id INTEGER NOT NULL,
+            ip_hash TEXT NOT NULL,
+            action TEXT NOT NULL CHECK(action IN ('push', 'skip')),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
         CREATE INDEX IF NOT EXISTS idx_users_token ON users(token);
         CREATE INDEX IF NOT EXISTS idx_user_topics_user ON user_topics(user_id);
         CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);
+        CREATE INDEX IF NOT EXISTS idx_push_logs_topic_ip ON push_logs(topic_id, ip_hash);
     """)
     db.commit()
     db.close()
+
+
+def ensure_topic_heat():
+    """Ensure all preset topics have a heat entry (default 100)."""
+    db = get_db()
+    topics = load_preset_topics()
+    for t in topics:
+        db.execute(
+            "INSERT OR IGNORE INTO topic_heat (topic_id, heat) VALUES (?, 100)",
+            (t['id'],)
+        )
+    db.commit()
+
+
+def get_topic_heat_map():
+    """Return dict of topic_id -> heat."""
+    db = get_db()
+    rows = db.execute("SELECT topic_id, heat FROM topic_heat").fetchall()
+    return {row['topic_id']: row['heat'] for row in rows}
 
 
 # ── Auth helpers ──────────────────────────────────────────
@@ -155,14 +188,25 @@ def get_topics():
     topics = load_preset_topics()
     ip = get_client_ip()
     db = get_db()
+
+    # Ensure heat entries exist
+    ensure_topic_heat()
+
     voted = db.execute(
         "SELECT topic_id FROM votes WHERE ip_address = ?", (ip,)
     ).fetchall()
     voted_ids = {row['topic_id'] for row in voted}
+
+    heat_map = get_topic_heat_map()
+
     result = []
     for t in topics:
         t['voted'] = t['id'] in voted_ids
+        t['heat'] = heat_map.get(t['id'], 100)
         result.append(t)
+
+    # Sort by heat descending
+    result.sort(key=lambda x: x['heat'], reverse=True)
     return jsonify(result)
 
 
@@ -190,10 +234,74 @@ def vote_preset():
             "INSERT INTO votes (topic_id, option_index, ip_address) VALUES (?, ?, ?)",
             (topic_id, option_index, ip)
         )
+        # Vote = participation = +2 heat
+        db.execute(
+            "INSERT INTO topic_heat (topic_id, heat) VALUES (?, 102) ON CONFLICT(topic_id) DO UPDATE SET heat = heat + 2",
+            (topic_id,)
+        )
         db.commit()
         return jsonify({'success': True, 'message': 'Vote recorded'})
     except sqlite3.IntegrityError:
         return jsonify({'error': 'You have already voted on this topic'}), 409
+
+
+@app.route('/api/topics/<int:topic_id>/push', methods=['POST'])
+def push_topic(topic_id):
+    topics = load_preset_topics()
+    topic = next((t for t in topics if t['id'] == topic_id), None)
+    if not topic:
+        return jsonify({'error': 'Topic not found'}), 404
+
+    ip = get_client_ip()
+    ip_hash_val = hash_ip(ip)
+    db = get_db()
+
+    # Check 24h cooldown
+    cutoff = (datetime.utcnow().timestamp() - 86400)
+    existing = db.execute(
+        "SELECT id FROM push_logs WHERE topic_id = ? AND ip_hash = ? AND action = 'push' AND strftime('%s', created_at) > ?",
+        (topic_id, ip_hash_val, str(int(cutoff)))
+    ).fetchone()
+    if existing:
+        return jsonify({'error': 'You have already pushed this topic in the last 24 hours'}), 429
+
+    db.execute(
+        "INSERT INTO topic_heat (topic_id, heat) VALUES (?, 110) ON CONFLICT(topic_id) DO UPDATE SET heat = heat + 10",
+        (topic_id,)
+    )
+    db.execute(
+        "INSERT INTO push_logs (topic_id, ip_hash, action) VALUES (?, ?, 'push')",
+        (topic_id, ip_hash_val)
+    )
+    db.commit()
+
+    new_heat = db.execute("SELECT heat FROM topic_heat WHERE topic_id = ?", (topic_id,)).fetchone()['heat']
+    return jsonify({'success': True, 'heat': new_heat})
+
+
+@app.route('/api/topics/<int:topic_id>/skip', methods=['POST'])
+def skip_topic(topic_id):
+    topics = load_preset_topics()
+    topic = next((t for t in topics if t['id'] == topic_id), None)
+    if not topic:
+        return jsonify({'error': 'Topic not found'}), 404
+
+    ip = get_client_ip()
+    ip_hash_val = hash_ip(ip)
+    db = get_db()
+
+    db.execute(
+        "INSERT INTO topic_heat (topic_id, heat) VALUES (?, 100) ON CONFLICT(topic_id) DO UPDATE SET heat = MAX(0, heat - 3)",
+        (topic_id,)
+    )
+    db.execute(
+        "INSERT INTO push_logs (topic_id, ip_hash, action) VALUES (?, ?, 'skip')",
+        (topic_id, ip_hash_val)
+    )
+    db.commit()
+
+    new_heat = db.execute("SELECT heat FROM topic_heat WHERE topic_id = ?", (topic_id,)).fetchone()['heat']
+    return jsonify({'success': True, 'heat': new_heat})
 
 
 @app.route('/api/stats/<int:topic_id>')
