@@ -81,10 +81,14 @@ body::before {
     justify-content: space-between;
     align-items: center;
     padding: 20px 24px 10px;
-    position: relative;
-    z-index: 1;
+    position: sticky;
+    top: 0;
+    z-index: 60;
     flex-wrap: wrap;
     gap: 10px;
+    background: rgba(6, 11, 26, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 .logo {
@@ -236,7 +240,7 @@ body::before {
     gap: 6px;
     padding: 8px 24px;
     position: sticky;
-    top: 0;
+    top: 62px;
     background: rgba(6, 11, 26, 0.85);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -1035,7 +1039,7 @@ body::before {
 }
 
 /* ══════════════════════════════════════════════
-   Mobile / Responsive (≤768px)
+   Mobile / Responsive (�?68px)
    ══════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
@@ -1069,8 +1073,9 @@ body::before {
         font-size: 12px;
     }
 
-    /* Tab Bar – horizontal scroll */
+    /* Tab Bar �?horizontal scroll */
     .tab-bar {
+        top: 46px;
         padding: 8px 12px;
         gap: 4px;
         flex-wrap: nowrap;
@@ -1210,7 +1215,7 @@ body::before {
         font-size: 16px;
     }
 
-    /* Slide Panels – full width on mobile */
+    /* Slide Panels �?full width on mobile */
     .panel-slide {
         width: 100%;
         max-width: 100vw;
