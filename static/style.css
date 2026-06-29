@@ -1389,6 +1389,17 @@ body::before {
     text-align: center;
 }
 
+/* Country flag image (replaces emoji on Win10) */
+.country-flag-img {
+    width: 18px;
+    height: 12px;
+    vertical-align: middle;
+    margin-right: 2px;
+    border-radius: 1px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
 .csr-name {
     flex: 1;
     color: var(--text);
@@ -1422,8 +1433,11 @@ body::before {
         padding: 6px 10px;
     }
     .csr-flag {
-        font-size: 16px;
         width: 24px;
+    }
+    .csr-flag .country-flag-img {
+        width: 16px;
+        height: 11px;
     }
     .card-country-stats {
         margin-top: 14px;
