@@ -371,6 +371,11 @@ async function init() {
     // Load topics
     const res = await fetch('/api/topics');
     topics = await res.json();
+    // Frontend safety sort: unvoted first, then by heat
+    topics.sort((a, b) => {
+        if (a.voted !== b.voted) return a.voted ? 1 : -1;
+        return (b.heat || 100) - (a.heat || 100);
+    });
     currentIndex = 0;
     renderCards();
     loadAllTopicStats();
@@ -601,19 +606,21 @@ function renderCards() {
         const favTitle = I18N.t(isFav ? 'unfavorite' : 'favorite');
 
         card.innerHTML = `
-            <div class="card-category">
-                ${escapeHtml(catTranslated)}
-                <button class="btn-fav ${isFav ? 'faved' : ''}" onclick="toggleFavorite('preset', ${t.id})" title="${favTitle}">${isFav ? '★' : '☆'}</button>
-            </div>
-            <div class="card-question">${escapeHtml(t.question)}</div>
-            <div class="card-options">
-                ${t.options.map((opt, oi) => `
-                    <button class="card-option ${t.voted ? 'voted' : ''} ${t._chosen === oi ? 'chosen' : ''}"
-                            data-topic="${t.id}" data-option="${oi}"
-                            ${t.voted ? 'disabled' : ''}>
-                        ${escapeHtml(opt)}
-                    </button>
-                `).join('')}
+            <div class="card-top">
+                <div class="card-category">
+                    ${escapeHtml(catTranslated)}
+                    <button class="btn-fav ${isFav ? 'faved' : ''}" onclick="toggleFavorite('preset', ${t.id})" title="${favTitle}">${isFav ? '★' : '☆'}</button>
+                </div>
+                <div class="card-question">${escapeHtml(t.question)}</div>
+                <div class="card-options">
+                    ${t.options.map((opt, oi) => `
+                        <button class="card-option ${t.voted ? 'voted' : ''} ${t._chosen === oi ? 'chosen' : ''}"
+                                data-topic="${t.id}" data-option="${oi}"
+                                ${t.voted ? 'disabled' : ''}>
+                            ${escapeHtml(opt)}
+                        </button>
+                    `).join('')}
+                </div>
             </div>
             <div class="card-stats" style="display:${t.voted || t._chosen !== undefined ? 'block' : 'none'}">
                 ${(t._stats || []).map(s => `
@@ -680,6 +687,10 @@ function renderCards() {
         const first = cardStack.querySelector('.vote-card');
         if (first) first.classList.add('active');
     }
+
+    // Scroll active card to top so question is visible
+    const activeCard = cardStack.querySelector('.vote-card.active');
+    if (activeCard) activeCard.scrollTop = 0;
 
     progressLabel.textContent = `${currentIndex + 1} / ${topics.length}`;
 

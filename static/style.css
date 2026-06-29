@@ -303,18 +303,16 @@ body::before {
     z-index: 2;
     max-height: 75vh;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .vote-card.prev {
-    opacity: 0.5;
-    transform: translateX(-30px) scale(0.95);
-    z-index: 1;
+    display: none;
 }
 
 .vote-card.next {
-    opacity: 0.5;
-    transform: translateX(30px) scale(0.95);
-    z-index: 1;
+    display: none;
 }
 
 .vote-card.exit-left {
@@ -345,7 +343,22 @@ body::before {
     hyphens: auto;
 }
 
-.card-options { display: flex; flex-direction: column; gap: 12px; }
+/* ── Card top (sticky header: category + question + options) ── */
+.card-top {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #0c1129;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.card-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
 
 .card-option {
     background: rgba(0, 0, 0, 0.3);
@@ -390,6 +403,11 @@ body::before {
     padding-top: 16px;
     border-top: 1px solid var(--border);
     gap: 8px;
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    background: #0c1129;
+    padding-bottom: 4px;
 }
 
 .btn-push,
