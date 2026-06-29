@@ -292,8 +292,9 @@ body::before {
     box-shadow: var(--card-glow);
     transition: transform 0.4s ease, opacity 0.4s ease;
     pointer-events: none;
-    opacity: 0.3;
+    opacity: 0;
     transform: scale(0.92);
+    display: none;
 }
 
 .vote-card.active {
