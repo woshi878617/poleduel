@@ -367,7 +367,7 @@ function renderCards() {
             <div class="card-actions">
                 <button class="btn-push" data-topic="${t.id}" data-action="push">${I18N.t('push')}</button>
                 <span class="card-heat" id="heat-${t.id}">${t.heat || 100}</span>
-                <button class="btn-skip" data-topic="${t.id}" data-action="skip">${I18N.t('skip')}</button>
+                <button class="btn-skip" data-topic="${t.id}" data-action="${t.voted ? 'next' : 'skip'}">${t.voted ? I18N.t('next_one') : I18N.t('skip')}</button>
             </div>`;
 
         cardStack.appendChild(card);
@@ -392,13 +392,18 @@ function renderCards() {
             });
         }
 
-        // Skip click
+        // Skip / Next click
         const skipBtn = card.querySelector('.btn-skip');
         if (skipBtn) {
             skipBtn.addEventListener('click', async () => {
                 if (isAnimating) return;
-                const tid = parseInt(skipBtn.dataset.topic);
-                await handleSkip(tid);
+                const action = skipBtn.dataset.action;
+                if (action === 'next') {
+                    if (currentIndex < topics.length - 1) navigate(1);
+                } else {
+                    const tid = parseInt(skipBtn.dataset.topic);
+                    await handleSkip(tid);
+                }
             });
         }
     });
@@ -431,12 +436,6 @@ async function handleVote(topicId, optionIndex) {
                 topic.total = statsData.total;
             }
             renderCards();
-
-            setTimeout(() => {
-                if (currentIndex < topics.length - 1) {
-                    navigate(1);
-                }
-            }, 1500);
         } else {
             alert(data.error || I18N.t('vote_failed'));
         }
