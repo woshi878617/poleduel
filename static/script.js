@@ -9,21 +9,73 @@ let favoriteIds = new Set(); // Set of "preset:ID" or "user:ID" strings
 
 // ── Country flag mapping ─────────────────────────────────
 const COUNTRY_FLAGS = {
-    'China': '🇨🇳', 'United States': '🇺🇸', 'Japan': '🇯🇵', 'South Korea': '🇰🇷',
-    'United Kingdom': '🇬🇧', 'France': '🇫🇷', 'Germany': '🇩🇪', 'Canada': '🇨🇦',
-    'Australia': '🇦🇺', 'India': '🇮🇳', 'Brazil': '🇧🇷', 'Russia': '🇷🇺',
-    'Italy': '🇮🇹', 'Spain': '🇪🇸', 'Mexico': '🇲🇽', 'Netherlands': '🇳🇱',
-    'Sweden': '🇸🇪', 'Switzerland': '🇨🇭', 'Singapore': '🇸🇬', 'Hong Kong': '🇭🇰',
-    'Taiwan': '🇹🇼', 'Thailand': '🇹🇭', 'Vietnam': '🇻🇳', 'Indonesia': '🇮🇩',
-    'Malaysia': '🇲🇾', 'Philippines': '🇵🇭', 'Turkey': '🇹🇷', 'Poland': '🇵🇱',
-    'Ukraine': '🇺🇦', 'Argentina': '🇦🇷', 'Chile': '🇨🇱', 'Colombia': '🇨🇴',
-    'South Africa': '🇿🇦', 'Egypt': '🇪🇬', 'Nigeria': '🇳🇬', 'Saudi Arabia': '🇸🇦',
-    'United Arab Emirates': '🇦🇪', 'Israel': '🇮🇱', 'Portugal': '🇵🇹',
-    'Belgium': '🇧🇪', 'Austria': '🇦🇹', 'Denmark': '🇩🇰', 'Norway': '🇳🇴',
-    'Finland': '🇫🇮', 'Ireland': '🇮🇪', 'New Zealand': '🇳🇿', 'Czechia': '🇨🇿',
-    'Greece': '🇬🇷', 'Romania': '🇷🇴', 'Hungary': '🇭🇺', 'Pakistan': '🇵🇰',
-    'Bangladesh': '🇧🇩', 'Iran': '🇮🇷', 'Iraq': '🇮🇶', 'Kazakhstan': '🇰🇿',
-    'Peru': '🇵🇪', 'Venezuela': '🇻🇪', 'Morocco': '🇲🇦', 'Kenya': '🇰🇪'
+    'Afghanistan': '🇦🇫', 'Albania': '🇦🇱', 'Algeria': '🇩🇿', 'Andorra': '🇦🇩',
+    'Angola': '🇦🇴', 'Antigua and Barbuda': '🇦🇬', 'Argentina': '🇦🇷', 'Armenia': '🇦🇲',
+    'Australia': '🇦🇺', 'Austria': '🇦🇹', 'Azerbaijan': '🇦🇿',
+    'Bahamas': '🇧🇸', 'Bahrain': '🇧🇭', 'Bangladesh': '🇧🇩', 'Barbados': '🇧🇧',
+    'Belarus': '🇧🇾', 'Belgium': '🇧🇪', 'Belize': '🇧🇿', 'Benin': '🇧🇯',
+    'Bhutan': '🇧🇹', 'Bolivia': '🇧🇴', 'Bosnia and Herzegovina': '🇧🇦',
+    'Botswana': '🇧🇼', 'Brazil': '🇧🇷', 'Brunei': '🇧🇳', 'Bulgaria': '🇧🇬',
+    'Burkina Faso': '🇧🇫', 'Burundi': '🇧🇮',
+    'Cambodia': '🇰🇭', 'Cameroon': '🇨🇲', 'Canada': '🇨🇦', 'Cape Verde': '🇨🇻',
+    'Central African Republic': '🇨🇫', 'Chad': '🇹🇩', 'Chile': '🇨🇱', 'China': '🇨🇳',
+    'Colombia': '🇨🇴', 'Comoros': '🇰🇲', 'Congo': '🇨🇬',
+    'Costa Rica': '🇨🇷', 'Croatia': '🇭🇷', 'Cuba': '🇨🇺', 'Cyprus': '🇨🇾',
+    'Czechia': '🇨🇿',
+    'DR Congo': '🇨🇩', 'Denmark': '🇩🇰', 'Djibouti': '🇩🇯', 'Dominica': '🇩🇲',
+    'Dominican Republic': '🇩🇴',
+    'Ecuador': '🇪🇨', 'Egypt': '🇪🇬', 'El Salvador': '🇸🇻',
+    'Equatorial Guinea': '🇬🇶', 'Eritrea': '🇪🇷', 'Estonia': '🇪🇪',
+    'Eswatini': '🇸🇿', 'Ethiopia': '🇪🇹',
+    'Fiji': '🇫🇯', 'Finland': '🇫🇮', 'France': '🇫🇷',
+    'Gabon': '🇬🇦', 'Gambia': '🇬🇲', 'Georgia': '🇬🇪', 'Germany': '🇩🇪',
+    'Ghana': '🇬🇭', 'Greece': '🇬🇷', 'Grenada': '🇬🇩', 'Guatemala': '🇬🇹',
+    'Guinea': '🇬🇳', 'Guinea-Bissau': '🇬🇼', 'Guyana': '🇬🇾',
+    'Haiti': '🇭🇹', 'Honduras': '🇭🇳', 'Hong Kong': '🇭🇰', 'Hungary': '🇭🇺',
+    'Iceland': '🇮🇸', 'India': '🇮🇳', 'Indonesia': '🇮🇩', 'Iran': '🇮🇷',
+    'Iraq': '🇮🇶', 'Ireland': '🇮🇪', 'Israel': '🇮🇱', 'Italy': '🇮🇹',
+    'Ivory Coast': '🇨🇮',
+    'Jamaica': '🇯🇲', 'Japan': '🇯🇵', 'Jordan': '🇯🇴',
+    'Kazakhstan': '🇰🇿', 'Kenya': '🇰🇪', 'Kiribati': '🇰🇮', 'Kuwait': '🇰🇼',
+    'Kyrgyzstan': '🇰🇬',
+    'Laos': '🇱🇦', 'Latvia': '🇱🇻', 'Lebanon': '🇱🇧', 'Lesotho': '🇱🇸',
+    'Liberia': '🇱🇷', 'Libya': '🇱🇾', 'Liechtenstein': '🇱🇮', 'Lithuania': '🇱🇹',
+    'Luxembourg': '🇱🇺',
+    'Madagascar': '🇲🇬', 'Malawi': '🇲🇼', 'Malaysia': '🇲🇾', 'Maldives': '🇲🇻',
+    'Mali': '🇲🇱', 'Malta': '🇲🇹', 'Marshall Islands': '🇲🇭', 'Mauritania': '🇲🇷',
+    'Mauritius': '🇲🇺', 'Mexico': '🇲🇽', 'Micronesia': '🇫🇲', 'Moldova': '🇲🇩',
+    'Monaco': '🇲🇨', 'Mongolia': '🇲🇳', 'Montenegro': '🇲🇪', 'Morocco': '🇲🇦',
+    'Mozambique': '🇲🇿', 'Myanmar': '🇲🇲',
+    'Namibia': '🇳🇦', 'Nauru': '🇳🇷', 'Nepal': '🇳🇵', 'Netherlands': '🇳🇱',
+    'New Zealand': '🇳🇿', 'Nicaragua': '🇳🇮', 'Niger': '🇳🇪', 'Nigeria': '🇳🇬',
+    'North Korea': '🇰🇵', 'North Macedonia': '🇲🇰', 'Norway': '🇳🇴',
+    'Oman': '🇴🇲',
+    'Pakistan': '🇵🇰', 'Palau': '🇵🇼', 'Palestine': '🇵🇸', 'Panama': '🇵🇦',
+    'Papua New Guinea': '🇵🇬', 'Paraguay': '🇵🇾', 'Peru': '🇵🇪',
+    'Philippines': '🇵🇭', 'Poland': '🇵🇱', 'Portugal': '🇵🇹',
+    'Qatar': '🇶🇦',
+    'Romania': '🇷🇴', 'Russia': '🇷🇺', 'Rwanda': '🇷🇼',
+    'Saint Kitts and Nevis': '🇰🇳', 'Saint Lucia': '🇱🇨',
+    'Saint Vincent and the Grenadines': '🇻🇨', 'Samoa': '🇼🇸',
+    'San Marino': '🇸🇲', 'Sao Tome and Principe': '🇸🇹',
+    'Saudi Arabia': '🇸🇦', 'Senegal': '🇸🇳', 'Serbia': '🇷🇸',
+    'Seychelles': '🇸🇨', 'Sierra Leone': '🇸🇱', 'Singapore': '🇸🇬',
+    'Slovakia': '🇸🇰', 'Slovenia': '🇸🇮', 'Solomon Islands': '🇸🇧',
+    'Somalia': '🇸🇴', 'South Africa': '🇿🇦', 'South Korea': '🇰🇷',
+    'South Sudan': '🇸🇸', 'Spain': '🇪🇸', 'Sri Lanka': '🇱🇰',
+    'Sudan': '🇸🇩', 'Suriname': '🇸🇷', 'Sweden': '🇸🇪', 'Switzerland': '🇨🇭',
+    'Syria': '🇸🇾',
+    'Taiwan': '🇹🇼', 'Tajikistan': '🇹🇯', 'Tanzania': '🇹🇿', 'Thailand': '🇹🇭',
+    'Timor-Leste': '🇹🇱', 'Togo': '🇹🇬', 'Tonga': '🇹🇴',
+    'Trinidad and Tobago': '🇹🇹', 'Tunisia': '🇹🇳', 'Turkey': '🇹🇷',
+    'Turkmenistan': '🇹🇲', 'Tuvalu': '🇹🇻',
+    'Uganda': '🇺🇬', 'Ukraine': '🇺🇦', 'United Arab Emirates': '🇦🇪',
+    'United Kingdom': '🇬🇧', 'United States': '🇺🇸', 'Uruguay': '🇺🇾',
+    'Uzbekistan': '🇺🇿',
+    'Vanuatu': '🇻🇺', 'Vatican City': '🇻🇦', 'Venezuela': '🇻🇪',
+    'Vietnam': '🇻🇳',
+    'Yemen': '🇾🇪',
+    'Zambia': '🇿🇲', 'Zimbabwe': '🇿🇼'
 };
 
 function getCountryFlag(country) {
@@ -998,7 +1050,13 @@ function renderCountryStats(countryStats) {
     const top3 = countryStats.slice(0, 3);
     const badges = top3.map(c => {
         const flag = getCountryFlag(c.country);
-        return `<span class="country-badge">${flag} ${escapeHtml(c.country)} <span class="country-count">${c.count}${I18N.t('votes_label')}</span></span>`;
+        if (flag) {
+            return `<span class="country-badge">${flag} <span class="country-count">${c.count}${I18N.t('votes_label')}</span></span>`;
+        } else {
+            const isUnknown = c.country === 'Unknown' || c.country === '未知';
+            const label = isUnknown ? I18N.t('country_unknown') : escapeHtml(c.country);
+            return `<span class="country-badge">${label} <span class="country-count">${c.count}${I18N.t('votes_label')}</span></span>`;
+        }
     }).join(' ');
     const viewAll = countryStats.length > 3
         ? ` <button class="btn-country-viewall" onclick="openCountryStats(event)">${I18N.t('view_all_countries')}</button>`
@@ -1014,11 +1072,19 @@ function openCountryStats(event) {
     const list = $('#countryStatsList');
     list.innerHTML = currentCountryStats.map(c => {
         const flag = getCountryFlag(c.country);
-        return `<div class="country-stat-row">
-            <span class="csr-flag">${flag}</span>
-            <span class="csr-name">${escapeHtml(c.country)}</span>
-            <span class="csr-count">${c.count} ${I18N.t('votes_label')}</span>
-        </div>`;
+        if (flag) {
+            return `<div class="country-stat-row">
+                <span class="csr-flag">${flag}</span>
+                <span class="csr-count">${c.count} ${I18N.t('votes_label')}</span>
+            </div>`;
+        } else {
+            const isUnknown = c.country === 'Unknown' || c.country === '未知';
+            const label = isUnknown ? I18N.t('country_unknown') : escapeHtml(c.country);
+            return `<div class="country-stat-row">
+                <span class="csr-name">${label}</span>
+                <span class="csr-count">${c.count} ${I18N.t('votes_label')}</span>
+            </div>`;
+        }
     }).join('');
     $('#countryStatsOverlay').classList.remove('hidden');
 }
