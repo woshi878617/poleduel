@@ -4,6 +4,8 @@ import json
 import sqlite3
 import secrets
 import hashlib
+import urllib.request
+import urllib.error
 from datetime import datetime
 from functools import wraps
 from flask import Flask, request, jsonify, g, send_from_directory
@@ -114,6 +116,11 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);
         CREATE INDEX IF NOT EXISTS idx_push_logs_topic_ip ON push_logs(topic_id, ip_hash);
     """)
+    # Migration: add country column if not exists
+    try:
+        db.execute("ALTER TABLE votes ADD COLUMN country TEXT DEFAULT '未知'")
+    except sqlite3.OperationalError:
+        pass
     db.commit()
     db.close()
 
@@ -171,6 +178,20 @@ def get_client_ip():
     if request.headers.get('X-Forwarded-For'):
         return request.headers['X-Forwarded-For'].split(',')[0].strip()
     return request.remote_addr or '127.0.0.1'
+
+
+def get_country_from_ip(ip):
+    """Query IP geolocation using ip-api.com (free, no API key). Returns country name or '未知'."""
+    if ip in ('127.0.0.1', '::1', 'localhost') or ip.startswith('192.168.') or ip.startswith('10.') or ip.startswith('172.'):
+        return '未知'
+    try:
+        url = f'http://ip-api.com/json/{ip}?fields=country'
+        req = urllib.request.Request(url, headers={'User-Agent': 'ControveRUS/1.0'})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+        return data.get('country', '未知') or '未知'
+    except Exception:
+        return '未知'
 
 
 # ── Static ────────────────────────────────────────────────
@@ -237,11 +258,12 @@ def vote_preset():
         return jsonify({'error': 'Invalid option'}), 400
 
     ip = get_client_ip()
+    country = get_country_from_ip(ip)
     db = get_db()
     try:
         db.execute(
-            "INSERT INTO votes (topic_id, option_index, ip_address) VALUES (?, ?, ?)",
-            (topic_id, option_index, ip)
+            "INSERT INTO votes (topic_id, option_index, ip_address, country) VALUES (?, ?, ?, ?)",
+            (topic_id, option_index, ip, country)
         )
         # Vote = participation = +2 heat
         db.execute(
@@ -314,30 +336,60 @@ def skip_topic(topic_id):
 
 
 @app.route('/api/stats/<int:topic_id>')
-def get_stats(topic_id):
+def get_stats_legacy(topic_id):
+    """Legacy alias for backward compatibility."""
+    return get_topic_stats(topic_id)
+
+
+@app.route('/api/topics/<int:topic_id>/stats')
+def get_topic_stats(topic_id):
     topics = load_preset_topics()
     topic = next((t for t in topics if t['id'] == topic_id), None)
     if not topic:
         return jsonify({'error': 'Topic not found'}), 404
 
     db = get_db()
+
+    # Option stats
     rows = db.execute(
         "SELECT option_index, COUNT(*) as count FROM votes WHERE topic_id = ? GROUP BY option_index",
         (topic_id,)
     ).fetchall()
 
     stats = {i: 0 for i in range(len(topic['options']))}
+    total = 0
     for r in rows:
         stats[r['option_index']] = r['count']
+        total += r['count']
 
-    result = {
+    option_stats = []
+    for i in range(len(topic['options'])):
+        count = stats[i]
+        pct = round(count / total * 100, 1) if total > 0 else 0.0
+        option_stats.append({
+            'option_text': topic['options'][i],
+            'count': count,
+            'percentage': pct
+        })
+
+    # Country stats
+    country_rows = db.execute(
+        "SELECT country, COUNT(*) as count FROM votes WHERE topic_id = ? GROUP BY country ORDER BY count DESC",
+        (topic_id,)
+    ).fetchall()
+
+    country_stats = [
+        {'country': r['country'], 'count': r['count']}
+        for r in country_rows if r['country'] != '未知'
+    ]
+
+    return jsonify({
         'topic_id': topic_id,
         'question': topic['question'],
-        'options': topic['options'],
-        'votes': [{'option': topic['options'][i], 'count': stats[i]} for i in range(len(topic['options']))],
-        'total': sum(stats.values())
-    }
-    return jsonify(result)
+        'total': total,
+        'option_stats': option_stats,
+        'country_stats': country_stats
+    })
 
 
 @app.route('/api/my-votes')

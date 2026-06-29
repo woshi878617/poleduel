@@ -7,6 +7,29 @@ let authToken = null;
 let currentUser = null;
 let favoriteIds = new Set(); // Set of "preset:ID" or "user:ID" strings
 
+// ── Country flag mapping ─────────────────────────────────
+const COUNTRY_FLAGS = {
+    'China': '🇨🇳', 'United States': '🇺🇸', 'Japan': '🇯🇵', 'South Korea': '🇰🇷',
+    'United Kingdom': '🇬🇧', 'France': '🇫🇷', 'Germany': '🇩🇪', 'Canada': '🇨🇦',
+    'Australia': '🇦🇺', 'India': '🇮🇳', 'Brazil': '🇧🇷', 'Russia': '🇷🇺',
+    'Italy': '🇮🇹', 'Spain': '🇪🇸', 'Mexico': '🇲🇽', 'Netherlands': '🇳🇱',
+    'Sweden': '🇸🇪', 'Switzerland': '🇨🇭', 'Singapore': '🇸🇬', 'Hong Kong': '🇭🇰',
+    'Taiwan': '🇹🇼', 'Thailand': '🇹🇭', 'Vietnam': '🇻🇳', 'Indonesia': '🇮🇩',
+    'Malaysia': '🇲🇾', 'Philippines': '🇵🇭', 'Turkey': '🇹🇷', 'Poland': '🇵🇱',
+    'Ukraine': '🇺🇦', 'Argentina': '🇦🇷', 'Chile': '🇨🇱', 'Colombia': '🇨🇴',
+    'South Africa': '🇿🇦', 'Egypt': '🇪🇬', 'Nigeria': '🇳🇬', 'Saudi Arabia': '🇸🇦',
+    'United Arab Emirates': '🇦🇪', 'Israel': '🇮🇱', 'Portugal': '🇵🇹',
+    'Belgium': '🇧🇪', 'Austria': '🇦🇹', 'Denmark': '🇩🇰', 'Norway': '🇳🇴',
+    'Finland': '🇫🇮', 'Ireland': '🇮🇪', 'New Zealand': '🇳🇿', 'Czechia': '🇨🇿',
+    'Greece': '🇬🇷', 'Romania': '🇷🇴', 'Hungary': '🇭🇺', 'Pakistan': '🇵🇰',
+    'Bangladesh': '🇧🇩', 'Iran': '🇮🇷', 'Iraq': '🇮🇶', 'Kazakhstan': '🇰🇿',
+    'Peru': '🇵🇪', 'Venezuela': '🇻🇪', 'Morocco': '🇲🇦', 'Kenya': '🇰🇪'
+};
+
+function getCountryFlag(country) {
+    return COUNTRY_FLAGS[country] || '';
+}
+
 // ── DOM refs ────────────────────────────────────────────
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -87,6 +110,7 @@ async function init() {
     topics = await res.json();
     currentIndex = 0;
     renderCards();
+    loadAllTopicStats();
 
     // Tab switching
     tabBtns.forEach(btn => {
@@ -112,6 +136,12 @@ async function init() {
     $('#historyOverlay').addEventListener('click', closeHistoryPanel);
     $('#myPollsOverlay').addEventListener('click', closeMyPollsPanel);
     $('#favoritesOverlay').addEventListener('click', closeFavoritesPanel);
+
+    // Country stats modal
+    $('#closeCountryStatsBtn').addEventListener('click', closeCountryStats);
+    $('#countryStatsOverlay').addEventListener('click', (e) => {
+        if (e.target === $('#countryStatsOverlay')) closeCountryStats();
+    });
 
     // Create poll form
     $('#addOptionBtn').addEventListener('click', addOptionRow);
@@ -328,6 +358,9 @@ function renderCards() {
                     </div>
                 `).join('')}
             </div>
+            <div class="card-country-stats" style="display:${(t._country_stats && t._country_stats.length > 0) ? 'block' : 'none'}">
+                ${renderCountryStats(t._country_stats || [])}
+            </div>
             <div class="card-comments" id="comments-${t.id}">
                 <div class="comments-loading">${I18N.t('loading_comments')}</div>
             </div>
@@ -391,9 +424,10 @@ async function handleVote(topicId, optionIndex) {
                 topic.voted = true;
                 topic._chosen = optionIndex;
                 topic.heat = (topic.heat || 100) + 2;
-                const sr = await fetch(`/api/stats/${topicId}`);
+                const sr = await fetch(`/api/topics/${topicId}/stats`);
                 const statsData = await sr.json();
-                topic._stats = statsData.votes;
+                topic._stats = statsData.option_stats.map(s => ({ option: s.option_text, count: s.count }));
+                topic._country_stats = statsData.country_stats || [];
                 topic.total = statsData.total;
             }
             renderCards();
@@ -955,6 +989,61 @@ async function removeFavorite(topicType, topicId) {
         loadFavorites();
         renderCards();
     } catch(e) { /* ignore */ }
+}
+
+// ── Country Stats ────────────────────────────────────────
+let currentCountryStats = []; // for modal
+
+function renderCountryStats(countryStats) {
+    if (!countryStats || countryStats.length === 0) return '';
+    const top3 = countryStats.slice(0, 3);
+    const badges = top3.map(c => {
+        const flag = getCountryFlag(c.country);
+        return `<span class="country-badge">${flag} ${escapeHtml(c.country)} <span class="country-count">${c.count}${I18N.t('votes_label')}</span></span>`;
+    }).join(' ');
+    const viewAll = countryStats.length > 3
+        ? ` <button class="btn-country-viewall" onclick="openCountryStats(event)">${I18N.t('view_all_countries')}</button>`
+        : '';
+    return `<div class="country-stats-header">${badges}${viewAll}</div>`;
+}
+
+function openCountryStats(event) {
+    event.stopPropagation();
+    const topic = topics[currentIndex];
+    if (!topic || !topic._country_stats) return;
+    currentCountryStats = topic._country_stats;
+    const list = $('#countryStatsList');
+    list.innerHTML = currentCountryStats.map(c => {
+        const flag = getCountryFlag(c.country);
+        return `<div class="country-stat-row">
+            <span class="csr-flag">${flag}</span>
+            <span class="csr-name">${escapeHtml(c.country)}</span>
+            <span class="csr-count">${c.count} ${I18N.t('votes_label')}</span>
+        </div>`;
+    }).join('');
+    $('#countryStatsOverlay').classList.remove('hidden');
+}
+
+function closeCountryStats() {
+    $('#countryStatsOverlay').classList.add('hidden');
+}
+
+async function loadAllTopicStats() {
+    // Fetch stats for all topics that are already voted
+    const votedTopics = topics.filter(t => t.voted);
+    let updated = false;
+    for (const t of votedTopics) {
+        if (t._stats) continue; // already loaded
+        try {
+            const sr = await fetch(`/api/topics/${t.id}/stats`);
+            const statsData = await sr.json();
+            t._stats = statsData.option_stats.map(s => ({ option: s.option_text, count: s.count }));
+            t._country_stats = statsData.country_stats || [];
+            t.total = statsData.total;
+            updated = true;
+        } catch(e) { /* ignore */ }
+    }
+    if (updated) renderCards();
 }
 
 // ── Utility ─────────────────────────────────────────────

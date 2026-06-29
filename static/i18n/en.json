@@ -105,5 +105,13 @@
   "failed_to_send_reply": "Failed to send reply",
 
   "vote_label": "vote",
-  "votes_label": "votes"
+  "votes_label": "votes",
+
+  "vote_stats": "Vote Stats",
+  "view_all_countries": "View All",
+  "country_votes": "{country} {count} votes",
+  "country_unknown": "Unknown",
+  "no_country_data": "No country data yet",
+  "all_countries_title": "All Countries",
+  "close": "Close"
 }

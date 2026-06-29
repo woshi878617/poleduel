@@ -105,5 +105,13 @@
   "failed_to_send_reply": "发送评论失败",
 
   "vote_label": "票",
-  "votes_label": "票"
+  "votes_label": "票",
+
+  "vote_stats": "投票统计",
+  "view_all_countries": "查看全部",
+  "country_votes": "{country} {count}票",
+  "country_unknown": "未知",
+  "no_country_data": "暂无国家数据",
+  "all_countries_title": "所有国家",
+  "close": "关闭"
 }

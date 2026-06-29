@@ -1254,3 +1254,128 @@ body::before {
         padding: 6px 10px;
     }
 }
+
+/* ── Country Stats ──────────────────────────── */
+
+.card-country-stats {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.country-stats-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+}
+
+.country-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.country-count {
+    color: var(--accent);
+    font-weight: 600;
+    margin-left: 2px;
+}
+
+.btn-country-viewall {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 2px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.btn-country-viewall:hover {
+    background: rgba(123, 140, 255, 0.1);
+    border-color: var(--accent);
+}
+
+/* Country Stats Modal */
+.country-stats-modal {
+    max-width: 420px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.country-stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 16px;
+    max-height: 50vh;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.country-stat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    transition: background 0.15s;
+}
+
+.country-stat-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.csr-flag {
+    font-size: 18px;
+    flex-shrink: 0;
+    width: 28px;
+    text-align: center;
+}
+
+.csr-name {
+    flex: 1;
+    color: var(--text);
+}
+
+.csr-count {
+    color: var(--accent);
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .country-stats-modal {
+        max-width: 94vw;
+    }
+    .country-badge {
+        font-size: 11px;
+        padding: 1px 6px;
+    }
+    .btn-country-viewall {
+        font-size: 10px;
+        padding: 1px 8px;
+    }
+    .country-stat-row {
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+    .csr-flag {
+        font-size: 16px;
+        width: 24px;
+    }
+}
