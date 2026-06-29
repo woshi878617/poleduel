@@ -344,12 +344,8 @@ body::before {
     hyphens: auto;
 }
 
-/* ── Card top (sticky header: category + question + options) ── */
+/* ── Card top (category + question + options) ── */
 .card-top {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: #0c1129;
     padding-bottom: 8px;
     margin-bottom: 8px;
     border-bottom: 1px solid var(--border);
@@ -404,10 +400,6 @@ body::before {
     padding-top: 16px;
     border-top: 1px solid var(--border);
     gap: 8px;
-    position: sticky;
-    bottom: 0;
-    z-index: 1;
-    background: #0c1129;
     padding-bottom: 4px;
 }
 
