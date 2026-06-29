@@ -7,6 +7,13 @@ let authToken = null;
 let currentUser = null;
 let favoriteIds = new Set(); // Set of "preset:ID" or "user:ID" strings
 
+// ── Touch swipe state ─────────────────────────────────────
+let touchStartX = 0;
+let touchStartY = 0;
+let touchCurrentX = 0;
+let isSwiping = false;
+const SWIPE_THRESHOLD = 80; // px to confirm swipe
+
 // ── Country flag mapping ─────────────────────────────────
 const COUNTRY_FLAGS = {
     'Afghanistan': '🇦🇫', 'Albania': '🇦🇱', 'Algeria': '🇩🇿', 'Andorra': '🇦🇩',
@@ -403,6 +410,9 @@ async function init() {
     $('#addOptionBtn').addEventListener('click', addOptionRow);
     $('#submitPollBtn').addEventListener('click', submitPoll);
     updateOptionRemoveButtons();
+
+    // Touch swipe for mobile
+    setupTouchSwipe();
 }
 
 function updateUIForAuth() {
@@ -614,10 +624,10 @@ function renderCards() {
                     </div>
                 `).join('')}
             </div>
-            <div class="card-country-stats" style="display:${(t._country_stats && t._country_stats.length > 0) ? 'block' : 'none'}">
+            <div class="card-country-stats" style="display:${(t.voted || t._chosen !== undefined) && t._country_stats && t._country_stats.length > 0 ? 'block' : 'none'}">
                 ${renderCountryStats(t._country_stats || [])}
             </div>
-            <div class="card-comments" id="comments-${t.id}">
+            <div class="card-comments" id="comments-${t.id}" style="display:${t.voted || t._chosen !== undefined ? 'block' : 'none'}">
                 <div class="comments-loading">${I18N.t('loading_comments')}</div>
             </div>
             <div class="card-actions">
@@ -1320,6 +1330,71 @@ function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+}
+
+// ── Touch Swipe (Mobile) ──────────────────────────────────
+function setupTouchSwipe() {
+    if (!('ontouchstart' in window)) return;
+
+    cardStack.addEventListener('touchstart', (e) => {
+        if (window.innerWidth >= 768 || isAnimating) return;
+        const card = cardStack.querySelector('.vote-card.active');
+        if (!card) return;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchCurrentX = touchStartX;
+        isSwiping = true;
+        card.style.transition = 'none';
+    }, { passive: true });
+
+    cardStack.addEventListener('touchmove', (e) => {
+        if (!isSwiping || window.innerWidth >= 768 || isAnimating) return;
+        const card = cardStack.querySelector('.vote-card.active');
+        if (!card) return;
+        touchCurrentX = e.touches[0].clientX;
+        const deltaX = touchCurrentX - touchStartX;
+        const deltaY = e.touches[0].clientY - touchStartY;
+        // Only intercept horizontal dominant swipes
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+            e.preventDefault();
+            card.style.transform = `translateX(${deltaX}px) scale(1)`;
+            card.style.opacity = 1 - Math.min(Math.abs(deltaX) / 300, 0.3);
+        }
+    }, { passive: false });
+
+    cardStack.addEventListener('touchend', () => {
+        if (!isSwiping || window.innerWidth >= 768 || isAnimating) {
+            isSwiping = false;
+            return;
+        }
+        isSwiping = false;
+        const card = cardStack.querySelector('.vote-card.active');
+        if (!card) return;
+        const deltaX = touchCurrentX - touchStartX;
+        card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+
+        if (deltaX < -SWIPE_THRESHOLD) {
+            // Swipe left → next topic (skip)
+            card.style.transform = 'translateX(-120%) scale(0.9)';
+            card.style.opacity = '0';
+            setTimeout(() => {
+                if (currentIndex < topics.length - 1) navigate(1);
+                else { card.style.transform = ''; card.style.opacity = ''; }
+            }, 300);
+        } else if (deltaX > SWIPE_THRESHOLD) {
+            // Swipe right → previous topic
+            card.style.transform = 'translateX(120%) scale(0.9)';
+            card.style.opacity = '0';
+            setTimeout(() => {
+                if (currentIndex > 0) navigate(-1);
+                else { card.style.transform = ''; card.style.opacity = ''; }
+            }, 300);
+        } else {
+            // Snap back
+            card.style.transform = '';
+            card.style.opacity = '';
+        }
+    });
 }
 
 // ── Start ───────────────────────────────────────────────
