@@ -674,6 +674,13 @@ function renderCards() {
         }
     });
 
+    // Ensure at least one card has active class
+    if (!cardStack.querySelector('.vote-card.active') && topics.length > 0) {
+        currentIndex = 0;
+        const first = cardStack.querySelector('.vote-card');
+        if (first) first.classList.add('active');
+    }
+
     progressLabel.textContent = `${currentIndex + 1} / ${topics.length}`;
 
     // Load comments for each topic

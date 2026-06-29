@@ -1109,6 +1109,14 @@ body::before {
         left: 0;
         right: 0;
         touch-action: pan-y; /* allow vertical scroll, JS handles horizontal swipe */
+        background: #0c1129; /* fallback solid color for mobile */
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+    .vote-card.active {
+        background: #0c1129;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
     }
     .card-category {
         font-size: 11px;

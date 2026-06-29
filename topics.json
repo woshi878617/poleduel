@@ -2,181 +2,528 @@
   {
     "id": 1,
     "question": "Messi or Ronaldo?",
-    "options": ["Team Messi", "Team Ronaldo", "Neither", "Both are great"],
+    "options": [
+      "Team Messi",
+      "Team Ronaldo",
+      "Neither",
+      "Both are great"
+    ],
     "category": "Sports"
   },
   {
     "id": 2,
     "question": "Is Israel's military action in Gaza justified?",
-    "options": ["Yes, it is justified", "No, it is not", "Too complex to judge"],
+    "options": [
+      "Yes, it is justified",
+      "No, it is not",
+      "Too complex to judge"
+    ],
     "category": "World"
   },
   {
     "id": 3,
     "question": "Do you sympathize with the Palestinian people?",
-    "options": ["Very much", "Somewhat", "No", "Not informed enough"],
+    "options": [
+      "Very much",
+      "Somewhat",
+      "No",
+      "Not informed enough"
+    ],
     "category": "World"
   },
   {
     "id": 4,
     "question": "Is China a force for good in global affairs?",
-    "options": ["Yes", "No", "Depends on the situation"],
+    "options": [
+      "Yes",
+      "No",
+      "Depends on the situation"
+    ],
     "category": "World"
   },
   {
     "id": 5,
     "question": "Is AI development more beneficial or dangerous for humanity?",
-    "options": ["More beneficial", "More dangerous", "Equal parts", "Too early to tell"],
+    "options": [
+      "More beneficial",
+      "More dangerous",
+      "Equal parts",
+      "Too early to tell"
+    ],
     "category": "Technology"
   },
   {
     "id": 6,
     "question": "Do you support Universal Basic Income (UBI)?",
-    "options": ["Fully support", "Conditionally support", "Do not support", "Not familiar"],
+    "options": [
+      "Fully support",
+      "Conditionally support",
+      "Do not support",
+      "Not familiar"
+    ],
     "category": "Economy"
   },
   {
     "id": 7,
     "question": "Should TikTok be banned?",
-    "options": ["Yes, ban it", "No, keep it", "Depends on the country"],
+    "options": [
+      "Yes, ban it",
+      "No, keep it",
+      "Depends on the country"
+    ],
     "category": "Technology"
   },
   {
     "id": 8,
     "question": "Is nuclear energy the best solution to climate change?",
-    "options": ["Yes", "No, better alternatives exist", "Nuclear is too dangerous"],
+    "options": [
+      "Yes",
+      "No, better alternatives exist",
+      "Nuclear is too dangerous"
+    ],
     "category": "Environment"
   },
   {
     "id": 9,
     "question": "Do you believe in extraterrestrial intelligent life?",
-    "options": ["Yes", "No", "Uncertain"],
+    "options": [
+      "Yes",
+      "No",
+      "Uncertain"
+    ],
     "category": "Science"
   },
   {
     "id": 10,
     "question": "Is remote work better than working in an office?",
-    "options": ["Remote is better", "Office is better", "Hybrid is best"],
+    "options": [
+      "Remote is better",
+      "Office is better",
+      "Hybrid is best"
+    ],
     "category": "Society"
   },
   {
     "id": 11,
     "question": "On the Russia-Ukraine war, which side are you on?",
-    "options": ["Support Ukraine", "Support Russia", "Stay neutral", "Hope for peace talks"],
+    "options": [
+      "Support Ukraine",
+      "Support Russia",
+      "Stay neutral",
+      "Hope for peace talks"
+    ],
     "category": "World"
   },
   {
     "id": 12,
     "question": "Is globalization a good thing?",
-    "options": ["Yes", "No", "Pros and cons both"],
+    "options": [
+      "Yes",
+      "No",
+      "Pros and cons both"
+    ],
     "category": "Economy"
   },
   {
     "id": 13,
     "question": "Do you support the death penalty?",
-    "options": ["Support", "Oppose", "Depends on the crime"],
+    "options": [
+      "Support",
+      "Oppose",
+      "Depends on the crime"
+    ],
     "category": "Society"
   },
   {
     "id": 14,
     "question": "Is social media's impact on society positive or negative?",
-    "options": ["Mostly positive", "Mostly negative", "Roughly equal"],
+    "options": [
+      "Mostly positive",
+      "Mostly negative",
+      "Roughly equal"
+    ],
     "category": "Society"
   },
   {
     "id": 15,
     "question": "Are electric vehicles truly greener than gas cars?",
-    "options": ["Yes", "No, manufacturing and power generation pollute too", "Depends on the electricity source"],
+    "options": [
+      "Yes",
+      "No, manufacturing and power generation pollute too",
+      "Depends on the electricity source"
+    ],
     "category": "Environment"
   },
   {
     "id": 16,
     "question": "Should genetically modified foods be banned?",
-    "options": ["Yes, ban them", "No, don't ban", "Regulate but don't ban"],
+    "options": [
+      "Yes, ban them",
+      "No, don't ban",
+      "Regulate but don't ban"
+    ],
     "category": "Science"
   },
   {
     "id": 17,
     "question": "Is Bitcoin the future of money or a bubble?",
-    "options": ["Future of money", "Pure bubble", "Has potential but risky"],
+    "options": [
+      "Future of money",
+      "Pure bubble",
+      "Has potential but risky"
+    ],
     "category": "Economy"
   },
   {
     "id": 18,
     "question": "Is a college degree still worth the cost?",
-    "options": ["Yes, worth it", "No, terrible ROI", "Depends on the major"],
+    "options": [
+      "Yes, worth it",
+      "No, terrible ROI",
+      "Depends on the major"
+    ],
     "category": "Society"
   },
   {
     "id": 19,
     "question": "Should humanity establish a colony on Mars?",
-    "options": ["Yes, it's our future", "No, fix Earth first", "Pursue both paths"],
+    "options": [
+      "Yes, it's our future",
+      "No, fix Earth first",
+      "Pursue both paths"
+    ],
     "category": "Science"
   },
   {
     "id": 20,
     "question": "Do you support mandatory vaccination?",
-    "options": ["Yes", "No, it should be voluntary", "Depends on severity"],
+    "options": [
+      "Yes",
+      "No, it should be voluntary",
+      "Depends on severity"
+    ],
     "category": "Society"
   },
   {
     "id": 21,
     "question": "Should China reunify with Taiwan by force?",
-    "options": ["Yes", "No", "Hope for peaceful reunification", "Taiwan should be independent"],
+    "options": [
+      "Yes",
+      "No",
+      "Hope for peaceful reunification",
+      "Taiwan should be independent"
+    ],
     "category": "World"
   },
   {
     "id": 22,
     "question": "Should the rich pay significantly higher taxes?",
-    "options": ["Yes, much higher", "Keep current rates", "Lower taxes for all"],
+    "options": [
+      "Yes, much higher",
+      "Keep current rates",
+      "Lower taxes for all"
+    ],
     "category": "Economy"
   },
   {
     "id": 23,
     "question": "Is veganism the future of food?",
-    "options": ["Yes", "No", "Will be one of the mainstreams"],
+    "options": [
+      "Yes",
+      "No",
+      "Will be one of the mainstreams"
+    ],
     "category": "Society"
   },
   {
     "id": 24,
     "question": "Should esports be considered real sports?",
-    "options": ["Yes", "No", "It's a competition, not a sport"],
+    "options": [
+      "Yes",
+      "No",
+      "It's a competition, not a sport"
+    ],
     "category": "Sports"
   },
   {
     "id": 25,
     "question": "Has America's global influence been positive or negative?",
-    "options": ["Mostly positive", "Mostly negative", "Mixed", "Depends on the era"],
+    "options": [
+      "Mostly positive",
+      "Mostly negative",
+      "Mixed",
+      "Depends on the era"
+    ],
     "category": "World"
   },
   {
     "id": 26,
     "question": "Should self-driving cars be allowed on public roads?",
-    "options": ["Yes, fully allow", "Allow with restrictions", "No, too risky"],
+    "options": [
+      "Yes, fully allow",
+      "Allow with restrictions",
+      "No, too risky"
+    ],
     "category": "Technology"
   },
   {
     "id": 27,
     "question": "Do you support euthanasia legalization?",
-    "options": ["Support", "Oppose", "Conditionally support"],
+    "options": [
+      "Support",
+      "Oppose",
+      "Conditionally support"
+    ],
     "category": "Society"
   },
   {
     "id": 28,
     "question": "Will cash disappear within 20 years?",
-    "options": ["Yes", "No", "Decline sharply but not disappear"],
+    "options": [
+      "Yes",
+      "No",
+      "Decline sharply but not disappear"
+    ],
     "category": "Economy"
   },
   {
     "id": 29,
     "question": "Is AI-generated art real art?",
-    "options": ["Yes", "No", "Partially"],
+    "options": [
+      "Yes",
+      "No",
+      "Partially"
+    ],
     "category": "Technology"
   },
   {
     "id": 30,
     "question": "Do you support Japan releasing treated Fukushima water into the Pacific?",
-    "options": ["Yes, it meets safety standards", "No, there are risks", "Need more independent verification"],
+    "options": [
+      "Yes, it meets safety standards",
+      "No, there are risks",
+      "Need more independent verification"
+    ],
     "category": "Environment"
+  },
+  {
+    "id": 31,
+    "question": "Should AI companies be held legally liable for harmful deepfake content generated by their models?",
+    "options": [
+      "Yes, full liability",
+      "Partial liability with safe harbor",
+      "No, users are responsible",
+      "Regulate but don't punish developers"
+    ],
+    "category": "Technology"
+  },
+  {
+    "id": 32,
+    "question": "Should governments impose a temporary pause on advanced AI development until safety regulations are in place?",
+    "options": [
+      "Yes, pause immediately",
+      "Regulate in parallel without pausing",
+      "No, innovation must not be slowed",
+      "Industry self-regulation is enough"
+    ],
+    "category": "Technology"
+  },
+  {
+    "id": 33,
+    "question": "Is Google's dominance in search and AI an unfair monopoly that should be broken up?",
+    "options": [
+      "Yes, break it up",
+      "Regulate more strictly",
+      "No, market competition is working",
+      "Focus on data privacy instead"
+    ],
+    "category": "Technology"
+  },
+  {
+    "id": 34,
+    "question": "Was the US-Iran peace agreement signed in June 2026 a genuine step toward Middle East stability?",
+    "options": [
+      "Yes, a historic breakthrough",
+      "Skeptical, Iran won't comply",
+      "It favors Iran too much",
+      "Too early to judge"
+    ],
+    "category": "World"
+  },
+  {
+    "id": 35,
+    "question": "Should European governments remove US-made communication apps from official devices over data sovereignty concerns?",
+    "options": [
+      "Yes, protect data sovereignty",
+      "No, it hurts transatlantic relations",
+      "Only for sensitive government work",
+      "Let individual nations decide"
+    ],
+    "category": "World"
+  },
+  {
+    "id": 36,
+    "question": "Should a 50% tax on AI super-profits fund a universal dividend for all citizens?",
+    "options": [
+      "Yes, share AI wealth broadly",
+      "Tax moderately, invest in retraining",
+      "No, it stifles innovation",
+      "Let market forces distribute benefits"
+    ],
+    "category": "Politics"
+  },
+  {
+    "id": 37,
+    "question": "Should the US Federal Reserve's independence from presidential influence be constitutionally protected?",
+    "options": [
+      "Yes, formal legal protection",
+      "Current informal independence is fine",
+      "No, president should have more say",
+      "Abolish the Fed entirely"
+    ],
+    "category": "Politics"
+  },
+  {
+    "id": 38,
+    "question": "Is the growing anti-data-center protest movement justified given the massive energy and water consumption of AI infrastructure?",
+    "options": [
+      "Yes, environmental costs outweigh benefits",
+      "Moderate regulation, not blanket opposition",
+      "No, AI benefits justify the costs",
+      "Build data centers only in renewable-rich areas"
+    ],
+    "category": "Society"
+  },
+  {
+    "id": 39,
+    "question": "Should university students have the right to walk out and protest commencement speakers they disagree with?",
+    "options": [
+      "Yes, peaceful protest is free speech",
+      "Protest outside, don't disrupt the ceremony",
+      "No, it shows disrespect to graduates",
+      "Universities should vet speakers better"
+    ],
+    "category": "Society"
+  },
+  {
+    "id": 40,
+    "question": "Is a four-day work week a realistic standard for most industries worldwide by 2035?",
+    "options": [
+      "Yes, AI will make it possible",
+      "Only for knowledge workers",
+      "No, many jobs require 5+ days",
+      "It will increase unemployment instead"
+    ],
+    "category": "Society"
+  },
+  {
+    "id": 41,
+    "question": "Should the NFL be mandated to replace all artificial turf with natural grass to reduce player injuries?",
+    "options": [
+      "Yes, player safety comes first",
+      "Let each team decide",
+      "No, turf technology is improving",
+      "Only for outdoor stadiums"
+    ],
+    "category": "Sports"
+  },
+  {
+    "id": 42,
+    "question": "Is performance-enhancing technology (AI-assisted training, smart equipment) creating an unfair playing field in professional sports?",
+    "options": [
+      "Yes, ban AI-enhanced training",
+      "Regulate but allow some tech",
+      "No, tech is part of sports evolution",
+      "Create separate tech-enhanced leagues"
+    ],
+    "category": "Sports"
+  },
+  {
+    "id": 43,
+    "question": "Will AI-driven automation create more jobs than it destroys globally over the next decade?",
+    "options": [
+      "Yes, history shows tech creates jobs",
+      "No, this time is different",
+      "Job quality will decline even if numbers rise",
+      "Only governments can manage the transition"
+    ],
+    "category": "Economy"
+  },
+  {
+    "id": 44,
+    "question": "Is the global economy entering a dangerous period of stagflation in 2026?",
+    "options": [
+      "Yes, inflation and stagnation are here",
+      "Temporary, will normalize by 2027",
+      "No, growth remains strong",
+      "Central banks will manage it"
+    ],
+    "category": "Economy"
+  },
+  {
+    "id": 45,
+    "question": "Should wealthy developed nations pay climate reparations to developing countries hardest hit by climate change?",
+    "options": [
+      "Yes, it's a moral obligation",
+      "Invest in green tech transfer instead",
+      "No, each nation is responsible for itself",
+      "Create a global climate insurance fund"
+    ],
+    "category": "Environment"
+  },
+  {
+    "id": 46,
+    "question": "Is nuclear power essential for achieving global net-zero carbon emission goals?",
+    "options": [
+      "Yes, it's the only reliable baseload",
+      "Combine nuclear with renewables",
+      "No, 100% renewables is achievable",
+      "Nuclear risks outweigh climate benefits"
+    ],
+    "category": "Environment"
+  },
+  {
+    "id": 47,
+    "question": "Do advanced AI language models possess genuine consciousness, or are they just sophisticated pattern matchers?",
+    "options": [
+      "They show genuine consciousness",
+      "They simulate consciousness convincingly",
+      "Definitely not conscious, just algorithms",
+      "We lack the tools to know for sure"
+    ],
+    "category": "Science"
+  },
+  {
+    "id": 48,
+    "question": "Should humanity prioritize building a permanent Mars colony over solving immediate crises on Earth?",
+    "options": [
+      "Yes, multi-planet survival is key",
+      "Pursue both in parallel",
+      "No, fix Earth's problems first",
+      "Private companies, not governments, should lead"
+    ],
+    "category": "Science"
+  },
+  {
+    "id": 49,
+    "question": "Should facial recognition technology be banned from all public spaces?",
+    "options": [
+      "Yes, it violates privacy rights",
+      "Allow only with strict warrants",
+      "No, it enhances public safety",
+      "Ban government use, allow private use"
+    ],
+    "category": "Technology"
+  },
+  {
+    "id": 50,
+    "question": "Are AI-powered recommendation algorithms on social media responsible for increasing political polarization?",
+    "options": [
+      "Yes, they amplify division for engagement",
+      "Partially, but users have agency",
+      "No, polarization predates algorithms",
+      "Mandate transparency and user control"
+    ],
+    "category": "Society"
   }
 ]

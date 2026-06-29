@@ -235,8 +235,8 @@ def get_topics():
         t['heat'] = heat_map.get(t['id'], 100)
         result.append(t)
 
-    # Sort by heat descending
-    result.sort(key=lambda x: x['heat'], reverse=True)
+    # Sort: unvoted first, then by heat descending
+    result.sort(key=lambda x: (x['voted'], -x['heat']))
     return jsonify(result)
 
 
