@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ControveRUS - Vote on Controversial Topics</title>
+    <title data-i18n="site_title">ControveRUS - Vote on Controversial Topics</title>
     <link rel="stylesheet" href="/style.css">
+    <script src="/i18n.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -14,8 +15,9 @@
             <h1 class="logo">Controve<span class="logo-highlight">RUS</span></h1>
         </div>
         <div class="header-right">
+            <button id="langSwitchBtn" class="btn-lang" onclick="I18N.switchLang(I18N.getLang()==='en'?'zh':'en')">中文</button>
             <div id="userArea">
-                <button id="loginBtn" class="btn-login">Sign In</button>
+                <button id="loginBtn" class="btn-login" data-i18n="sign_in">Sign In</button>
             </div>
         </div>
     </header>
@@ -23,58 +25,58 @@
     <!-- Login Modal -->
     <div id="loginModal" class="modal-overlay hidden">
         <div class="modal-box">
-            <h2>Sign In</h2>
-            <p class="modal-sub">Sign in to create your own polls</p>
+            <h2 data-i18n="sign_in_modal_title">Sign In</h2>
+            <p class="modal-sub" data-i18n="sign_in_modal_sub">Sign in to create your own polls</p>
             <div class="login-options">
-                <button id="guestLoginBtn" class="btn-auth btn-guest">Continue as Guest</button>
-                <div class="divider"><span>or</span></div>
+                <button id="guestLoginBtn" class="btn-auth btn-guest" data-i18n="continue_as_guest">Continue as Guest</button>
+                <div class="divider"><span data-i18n="or">or</span></div>
                 <div id="googleBtnContainer"></div>
             </div>
-            <button id="closeLoginBtn" class="btn-close-modal">Cancel</button>
+            <button id="closeLoginBtn" class="btn-close-modal" data-i18n="cancel">Cancel</button>
         </div>
     </div>
 
     <!-- Tab Bar -->
     <nav class="tab-bar">
-        <button class="tab-btn active" data-tab="preset">Hot Topics</button>
-        <button id="createPollTab" class="tab-btn tab-cta hidden" data-tab="create">+ Create Poll</button>
+        <button class="tab-btn active" data-tab="preset" data-i18n="tab_hot_topics">Hot Topics</button>
+        <button id="createPollTab" class="tab-btn tab-cta hidden" data-tab="create" data-i18n="tab_create_poll">+ Create Poll</button>
     </nav>
 
     <!-- Preset Topics Tab -->
     <section id="tab-preset" class="tab-content active">
         <div class="card-stack" id="cardStack"></div>
         <div class="stack-controls">
-            <button id="prevBtn" class="btn-nav">&larr; Previous</button>
+            <button id="prevBtn" class="btn-nav" data-i18n="previous">&larr; Previous</button>
             <span id="progressLabel" class="progress-label"></span>
-            <button id="nextBtn" class="btn-nav">Next &rarr;</button>
+            <button id="nextBtn" class="btn-nav" data-i18n="next">Next &rarr;</button>
         </div>
     </section>
 
     <!-- Create Poll Tab -->
     <section id="tab-create" class="tab-content">
         <div class="create-form">
-            <h2>Create a New Poll</h2>
+            <h2 data-i18n="create_poll_title">Create a New Poll</h2>
             <div class="form-group">
-                <label for="pollQuestion">Your Question</label>
-                <input type="text" id="pollQuestion" placeholder="Ask a controversial question..." maxlength="200">
+                <label for="pollQuestion" data-i18n="your_question">Your Question</label>
+                <input type="text" id="pollQuestion" data-i18n-placeholder="question_placeholder" placeholder="Ask a controversial question..." maxlength="200">
             </div>
             <div class="form-group">
-                <label>Options</label>
+                <label data-i18n="options">Options</label>
                 <div id="optionsContainer">
                     <div class="option-row">
-                        <input type="text" class="option-input" placeholder="Option 1" maxlength="100">
-                        <button class="btn-remove-option hidden" title="Remove">&times;</button>
+                        <input type="text" class="option-input" maxlength="100">
+                        <button class="btn-remove-option hidden" data-i18n-title="remove" title="Remove">&times;</button>
                     </div>
                     <div class="option-row">
-                        <input type="text" class="option-input" placeholder="Option 2" maxlength="100">
-                        <button class="btn-remove-option hidden" title="Remove">&times;</button>
+                        <input type="text" class="option-input" maxlength="100">
+                        <button class="btn-remove-option hidden" data-i18n-title="remove" title="Remove">&times;</button>
                     </div>
                 </div>
-                <button id="addOptionBtn" class="btn-add-option">+ Add Option</button>
-                <p class="form-hint">2&ndash;10 options, at least 2 required</p>
+                <button id="addOptionBtn" class="btn-add-option" data-i18n="add_option">+ Add Option</button>
+                <p class="form-hint" data-i18n="form_hint_options">2&ndash;10 options, at least 2 required</p>
             </div>
             <div class="form-group">
-                <label for="pollCategory">Category</label>
+                <label for="pollCategory" data-i18n="category">Category</label>
                 <select id="pollCategory">
                     <option value="General">General</option>
                     <option value="Sports">Sports</option>
@@ -87,7 +89,7 @@
                 </select>
             </div>
             <div class="form-actions">
-                <button id="submitPollBtn" class="btn-primary">Publish Poll</button>
+                <button id="submitPollBtn" class="btn-primary" data-i18n="publish_poll">Publish Poll</button>
             </div>
             <p id="createMsg" class="form-msg hidden"></p>
             <p id="dailyRemaining" class="form-hint" style="margin-top:6px;"></p>
@@ -98,11 +100,11 @@
     <div id="myPollsOverlay" class="panel-overlay hidden"></div>
     <div id="myPollsPanel" class="panel-slide hidden">
         <div class="panel-header">
-            <h3>My Polls</h3>
+            <h3 data-i18n="my_polls">My Polls</h3>
             <button id="closeMyPollsBtn" class="btn-close-panel">&times;</button>
         </div>
         <div id="myPollsList" class="panel-list">
-            <p class="empty-msg">Loading your polls...</p>
+            <p class="empty-msg" data-i18n="loading_polls">Loading your polls...</p>
         </div>
     </div>
 
@@ -110,11 +112,11 @@
     <div id="historyOverlay" class="panel-overlay hidden"></div>
     <div id="historyPanel" class="panel-slide hidden">
         <div class="panel-header">
-            <h3>My Votes</h3>
+            <h3 data-i18n="my_votes">My Votes</h3>
             <button id="closeHistoryBtn" class="btn-close-panel">&times;</button>
         </div>
         <div id="historyList" class="panel-list">
-            <p class="empty-msg">Loading your votes...</p>
+            <p class="empty-msg" data-i18n="loading_votes">Loading your votes...</p>
         </div>
     </div>
 
@@ -122,19 +124,19 @@
     <div id="favoritesOverlay" class="panel-overlay hidden"></div>
     <div id="favoritesPanel" class="panel-slide hidden">
         <div class="panel-header">
-            <h3>My Favorites</h3>
+            <h3 data-i18n="my_favorites">My Favorites</h3>
             <button id="closeFavoritesBtn" class="btn-close-panel">&times;</button>
         </div>
         <div id="favoritesList" class="panel-list">
-            <p class="empty-msg">Loading your favorites...</p>
+            <p class="empty-msg" data-i18n="loading_favorites">Loading your favorites...</p>
         </div>
     </div>
 
     <!-- Bottom action bar -->
     <div class="action-bar" id="actionBar">
-        <button id="favoritesBtn" class="btn-action action-fav hidden">&#9733; Favorites</button>
-        <button id="historyBtn" class="btn-action action-votes">&#10003; My Votes</button>
-        <button id="myPollsBtn" class="btn-action action-polls hidden">&#9776; My Polls</button>
+        <button id="favoritesBtn" class="btn-action action-fav hidden" data-i18n="btn_favorites">&#9733; Favorites</button>
+        <button id="historyBtn" class="btn-action action-votes" data-i18n="btn_my_votes">&#10003; My Votes</button>
+        <button id="myPollsBtn" class="btn-action action-polls hidden" data-i18n="btn_my_polls">&#9776; My Polls</button>
     </div>
 
     <!-- Google client ID config (set by server or default) -->

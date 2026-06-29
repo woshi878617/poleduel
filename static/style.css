@@ -106,6 +106,30 @@ body::before {
 
 .btn-login:hover { background: var(--surface-hover); border-color: var(--accent); }
 
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-lang {
+    background: var(--surface);
+    color: var(--accent);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-lang:hover {
+    background: var(--surface-hover);
+    border-color: var(--accent);
+}
+
 .user-info {
     display: flex;
     align-items: center;
@@ -392,6 +416,140 @@ body::before {
     color: var(--text-dim);
     min-width: 28px;
     text-align: center;
+}
+
+/* ── Comments ────────────────────────────────── */
+
+.card-comments {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.comments-loading {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 8px 0;
+}
+
+.comments-empty {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 6px 0;
+}
+
+.comment-item {
+    display: flex;
+    gap: 10px;
+    padding: 6px 0;
+    align-items: flex-start;
+}
+
+.comment-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.comment-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.comment-author {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.comment-time {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-left: 8px;
+}
+
+.comment-content {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.comments-more {
+    font-size: 12px;
+    color: var(--accent);
+    cursor: pointer;
+    text-align: center;
+    padding: 4px 0;
+    transition: color 0.15s;
+}
+
+.comments-more:hover {
+    color: var(--accent-hover);
+}
+
+.comment-reply {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.comment-input {
+    flex: 1;
+    padding: 7px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.comment-input:focus {
+    border-color: var(--accent);
+}
+
+.comment-input::placeholder {
+    color: var(--text-dim);
+    font-size: 12px;
+}
+
+.btn-comment-send {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.btn-comment-send:hover {
+    background: var(--accent-hover);
+}
+
+.comments-login-hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 8px 0;
 }
 
 /* ── Stack Controls ─────────────────────────── */
@@ -1076,5 +1234,23 @@ body::before {
     .empty-msg {
         padding: 32px 12px;
         font-size: 13px;
+    }
+
+    /* Comments mobile */
+    .comment-avatar {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+    }
+    .comment-content {
+        font-size: 12px;
+    }
+    .comment-input {
+        font-size: 12px;
+        padding: 6px 8px;
+    }
+    .btn-comment-send {
+        font-size: 11px;
+        padding: 6px 10px;
     }
 }

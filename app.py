@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import sqlite3
 import secrets
@@ -97,6 +98,14 @@ def init_db():
             topic_id INTEGER NOT NULL,
             ip_hash TEXT NOT NULL,
             action TEXT NOT NULL CHECK(action IN ('push', 'skip')),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic_id TEXT NOT NULL,
+            user_id TEXT NOT NULL,
+            content TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
@@ -843,6 +852,81 @@ def list_favorites():
             })
 
     return jsonify(result)
+
+
+# ── Comments ──────────────────────────────────────────────
+
+@app.route('/api/topics/<topic_id>/comments')
+def get_comments(topic_id):
+    db = get_db()
+    rows = db.execute(
+        """SELECT c.id, c.topic_id, c.user_id, c.content, c.created_at,
+                  u.display_name, u.avatar_url
+           FROM comments c
+           JOIN users u ON c.user_id = u.id
+           WHERE c.topic_id = ?
+           ORDER BY c.created_at ASC""",
+        (str(topic_id),)
+    ).fetchall()
+    result = []
+    for r in rows:
+        result.append({
+            'id': r['id'],
+            'topic_id': r['topic_id'],
+            'user_id': r['user_id'],
+            'content': r['content'],
+            'created_at': r['created_at'],
+            'display_name': r['display_name'],
+            'avatar_url': r['avatar_url']
+        })
+    return jsonify(result)
+
+
+@app.route('/api/topics/<topic_id>/comments', methods=['POST'])
+@require_auth
+def create_comment(topic_id):
+    data = request.get_json()
+    content = data.get('content', '').strip()
+
+    if not content:
+        return jsonify({'error': 'Content cannot be empty'}), 400
+
+    # Detect if content contains Chinese characters
+    has_chinese = bool(re.search(r'[\u4e00-\u9fff]', content))
+    if has_chinese:
+        if len(content) > 100:
+            return jsonify({'error': f'回复过长（当前 {len(content)} 字，限制 100 字）'}), 400
+    else:
+        if len(content) > 200:
+            return jsonify({'error': f'Reply too long ({len(content)} chars, limit 200)'}), 400
+
+    db = get_db()
+    db.execute(
+        "INSERT INTO comments (topic_id, user_id, content) VALUES (?, ?, ?)",
+        (str(topic_id), g.current_user['id'], content)
+    )
+    db.commit()
+
+    comment_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+    # Return the new comment with user info
+    row = db.execute(
+        """SELECT c.id, c.topic_id, c.user_id, c.content, c.created_at,
+                  u.display_name, u.avatar_url
+           FROM comments c
+           JOIN users u ON c.user_id = u.id
+           WHERE c.id = ?""",
+        (comment_id,)
+    ).fetchone()
+
+    return jsonify({
+        'id': row['id'],
+        'topic_id': row['topic_id'],
+        'user_id': row['user_id'],
+        'content': row['content'],
+        'created_at': row['created_at'],
+        'display_name': row['display_name'],
+        'avatar_url': row['avatar_url']
+    }), 201
 
 
 # ── Main ──────────────────────────────────────────────────

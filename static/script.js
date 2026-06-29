@@ -28,8 +28,49 @@ const favoritesBtn = $('#favoritesBtn');
 const tabBtns = $$('.tab-btn');
 const tabContents = $$('.tab-content');
 
+// ── Lang change callback ─────────────────────────────────
+window._onLangChange = function(newLang) {
+    const btn = document.getElementById('langSwitchBtn');
+    if (btn) {
+        btn.textContent = newLang === 'en' ? '中文' : 'EN';
+    }
+    // Re-apply category select options
+    updateCategorySelect();
+    // Re-render all dynamic content
+    renderCards();
+    if ($('#myPollsPanel').classList.contains('open')) loadMyPolls();
+    if ($('#historyPanel').classList.contains('open')) loadHistory();
+    if ($('#favoritesPanel').classList.contains('open')) loadFavorites();
+    if ($('#tab-create').classList.contains('active')) fetchDailyRemaining();
+    updateUIForAuth();
+};
+
+function updateCategorySelect() {
+    const sel = $('#pollCategory');
+    if (!sel) return;
+    const cats = ['General','Sports','World','Technology','Economy','Environment','Science','Society'];
+    const currentVal = sel.value;
+    sel.innerHTML = cats.map(c => {
+        const t = I18N.getCategoryKey(c);
+        return `<option value="${c}">${t}</option>`;
+    }).join('');
+    sel.value = currentVal;
+}
+
 // ── Init ─────────────────────────────────────────────────
 async function init() {
+    // Init i18n first
+    await I18N.init();
+
+    // Set lang switch button initial text
+    const langBtn = document.getElementById('langSwitchBtn');
+    if (langBtn) {
+        langBtn.textContent = I18N.getLang() === 'en' ? '中文' : 'EN';
+    }
+
+    // Update category select with i18n labels
+    updateCategorySelect();
+
     // Restore auth from localStorage
     const saved = localStorage.getItem('vote_site_auth');
     if (saved) {
@@ -89,7 +130,7 @@ function updateUIForAuth() {
                 ${currentUser.avatar_url ? `<img src="${currentUser.avatar_url}" alt="">` : ''}
                 <span>${escapeHtml(currentUser.display_name)}</span>
                 ${guestBindHtml}
-                <button class="btn-login" onclick="logout()" style="margin-left:8px;font-size:12px;">Sign Out</button>
+                <button class="btn-login" onclick="logout()" style="margin-left:8px;font-size:12px;">${I18N.t('sign_out')}</button>
             </div>`;
         createPollTab.classList.remove('hidden');
         myPollsBtn.classList.remove('hidden');
@@ -100,7 +141,7 @@ function updateUIForAuth() {
             setTimeout(initGoogleBindBtn, 200);
         }
     } else {
-        userArea.innerHTML = '<button id="loginBtn" class="btn-login">Sign In</button>';
+        userArea.innerHTML = `<button id="loginBtn" class="btn-login">${I18N.t('sign_in')}</button>`;
         document.getElementById('loginBtn').addEventListener('click', () => loginModal.classList.remove('hidden'));
         createPollTab.classList.add('hidden');
         myPollsBtn.classList.add('hidden');
@@ -119,7 +160,7 @@ async function guestLogin() {
             loginModal.classList.add('hidden');
         }
     } catch(e) {
-        alert('Login failed. Please try again.');
+        alert(I18N.t('login_failed'));
     }
 }
 
@@ -135,10 +176,10 @@ async function googleLogin(credential) {
             setAuth(data.token, data.user);
             loginModal.classList.add('hidden');
         } else {
-            alert('Google login failed: ' + (data.error || 'Unknown error'));
+            alert(I18N.t('google_login_failed', { error: data.error || 'Unknown error' }));
         }
     } catch(e) {
-        alert('Google login failed. Please try again.');
+        alert(I18N.t('login_failed'));
     }
 }
 
@@ -166,7 +207,6 @@ function logout() {
     currentUser = null;
     localStorage.removeItem('vote_site_auth');
     updateUIForAuth();
-    // Hide create tab if active
     if ($('#tab-create').classList.contains('active')) {
         switchTab('preset');
     }
@@ -179,7 +219,7 @@ function authHeaders() {
 // ── Google Identity Services ────────────────────────────
 function initGoogleBtn() {
     if (!window.GOOGLE_CLIENT_ID) {
-        googleBtnContainer.innerHTML = '<p style="color:var(--text-dim);font-size:12px;">Google Sign-In not configured</p>';
+        googleBtnContainer.innerHTML = `<p style="color:var(--text-dim);font-size:12px;">${I18N.t('google_not_configured')}</p>`;
         return;
     }
     google.accounts.id.initialize({
@@ -225,10 +265,10 @@ async function bindGoogle(credential) {
         if (data.token) {
             setAuth(data.token, data.user);
         } else {
-            alert('Binding failed: ' + (data.error || 'Unknown error'));
+            alert(I18N.t('bind_failed', { error: data.error || 'Unknown error' }));
         }
     } catch(e) {
-        alert('Binding failed. Please try again.');
+        alert(I18N.t('bind_failed_try_again'));
     }
 }
 
@@ -249,7 +289,7 @@ function switchTab(tab) {
 function renderCards() {
     cardStack.innerHTML = '';
     if (topics.length === 0) {
-        cardStack.innerHTML = '<p class="empty-msg">No topics available</p>';
+        cardStack.innerHTML = `<p class="empty-msg">${I18N.t('no_topics')}</p>`;
         return;
     }
 
@@ -261,11 +301,13 @@ function renderCards() {
         else if (i === currentIndex + 1) card.classList.add('next');
 
         const isFav = favoriteIds.has(`preset:${t.id}`);
+        const catTranslated = I18N.getCategoryKey(t.category);
+        const favTitle = I18N.t(isFav ? 'unfavorite' : 'favorite');
 
         card.innerHTML = `
             <div class="card-category">
-                ${escapeHtml(t.category)}
-                <button class="btn-fav ${isFav ? 'faved' : ''}" onclick="toggleFavorite('preset', ${t.id})" title="${isFav ? 'Unfavorite' : 'Favorite'}">${isFav ? '★' : '☆'}</button>
+                ${escapeHtml(catTranslated)}
+                <button class="btn-fav ${isFav ? 'faved' : ''}" onclick="toggleFavorite('preset', ${t.id})" title="${favTitle}">${isFav ? '★' : '☆'}</button>
             </div>
             <div class="card-question">${escapeHtml(t.question)}</div>
             <div class="card-options">
@@ -286,10 +328,13 @@ function renderCards() {
                     </div>
                 `).join('')}
             </div>
+            <div class="card-comments" id="comments-${t.id}">
+                <div class="comments-loading">${I18N.t('loading_comments')}</div>
+            </div>
             <div class="card-actions">
-                <button class="btn-push" data-topic="${t.id}" data-action="push">🔥 Push</button>
+                <button class="btn-push" data-topic="${t.id}" data-action="push">${I18N.t('push')}</button>
                 <span class="card-heat" id="heat-${t.id}">${t.heat || 100}</span>
-                <button class="btn-skip" data-topic="${t.id}" data-action="skip">Skip →</button>
+                <button class="btn-skip" data-topic="${t.id}" data-action="skip">${I18N.t('skip')}</button>
             </div>`;
 
         cardStack.appendChild(card);
@@ -326,6 +371,9 @@ function renderCards() {
     });
 
     progressLabel.textContent = `${currentIndex + 1} / ${topics.length}`;
+
+    // Load comments for each topic
+    topics.forEach(t => fetchComments(t.id));
 }
 
 async function handleVote(topicId, optionIndex) {
@@ -343,7 +391,6 @@ async function handleVote(topicId, optionIndex) {
                 topic.voted = true;
                 topic._chosen = optionIndex;
                 topic.heat = (topic.heat || 100) + 2;
-                // Fetch stats
                 const sr = await fetch(`/api/stats/${topicId}`);
                 const statsData = await sr.json();
                 topic._stats = statsData.votes;
@@ -351,23 +398,22 @@ async function handleVote(topicId, optionIndex) {
             }
             renderCards();
 
-            // Auto advance after vote
             setTimeout(() => {
                 if (currentIndex < topics.length - 1) {
                     navigate(1);
                 }
             }, 1500);
         } else {
-            alert(data.error || 'Vote failed');
+            alert(data.error || I18N.t('vote_failed'));
         }
     } catch(e) {
-        alert('Network error. Please try again.');
+        alert(I18N.t('network_error'));
     }
 }
 
 async function handlePush(topicId, buttonEl) {
     if (!authToken) {
-        alert('Please sign in to Push topics.');
+        alert(I18N.t('please_sign_in_push'));
         loginModal.classList.remove('hidden');
         return;
     }
@@ -380,20 +426,20 @@ async function handlePush(topicId, buttonEl) {
         if (data.success) {
             const topic = topics.find(t => t.id === topicId);
             if (topic) topic.heat = data.heat;
-            buttonEl.textContent = 'Pushed ✓';
+            buttonEl.textContent = I18N.t('pushed');
             buttonEl.disabled = true;
             buttonEl.classList.add('pushed');
             const heatEl = document.getElementById(`heat-${topicId}`);
             if (heatEl) heatEl.textContent = data.heat;
         } else if (res.status === 429) {
-            buttonEl.textContent = 'Pushed ✓';
+            buttonEl.textContent = I18N.t('pushed');
             buttonEl.disabled = true;
             buttonEl.classList.add('pushed');
         } else {
-            alert(data.error || 'Push failed');
+            alert(data.error || I18N.t('push_failed'));
         }
     } catch(e) {
-        alert('Network error. Please try again.');
+        alert(I18N.t('network_error'));
     }
 }
 
@@ -407,17 +453,117 @@ async function handleSkip(topicId) {
         if (data.success) {
             const topic = topics.find(t => t.id === topicId);
             if (topic) topic.heat = data.heat;
-            // Jump to next card
             if (currentIndex < topics.length - 1) {
                 navigate(1);
             }
         }
     } catch(e) {
-        // Silently fail for skip - just navigate
         if (currentIndex < topics.length - 1) {
             navigate(1);
         }
     }
+}
+
+// ── Comments ────────────────────────────────────────────
+let commentsCache = {}; // topicId -> { comments, expanded }
+
+async function fetchComments(topicId) {
+    const container = document.getElementById(`comments-${topicId}`);
+    if (!container) return;
+    try {
+        const res = await fetch(`/api/topics/${topicId}/comments`);
+        const comments = await res.json();
+        commentsCache[topicId] = { comments, expanded: false };
+        renderComments(topicId, container);
+    } catch(e) {
+        container.innerHTML = '';
+    }
+}
+
+function renderComments(topicId, container) {
+    const cached = commentsCache[topicId];
+    if (!cached) return;
+    const { comments, expanded } = cached;
+    if (comments.length === 0) {
+        container.innerHTML = `<div class="comments-empty">${I18N.t('no_replies')}</div>`;
+    } else {
+        const maxShow = expanded ? comments.length : Math.min(3, comments.length);
+        const visible = comments.slice(0, maxShow);
+        const html = visible.map(c => `
+            <div class="comment-item">
+                <div class="comment-avatar">${getAvatarInitials(c.display_name)}</div>
+                <div class="comment-body">
+                    <span class="comment-author">${escapeHtml(c.display_name)}</span>
+                    <span class="comment-time">${formatCommentTime(c.created_at)}</span>
+                    <div class="comment-content">${escapeHtml(c.content)}</div>
+                </div>
+            </div>
+        `).join('');
+        const moreHtml = (!expanded && comments.length > 3) ?
+            `<div class="comments-more" onclick="expandComments(${topicId})">${I18N.t('view_all_replies', { n: comments.length })}</div>` : '';
+        container.innerHTML = html + moreHtml;
+    }
+
+    // Append reply input area
+    const inputHtml = currentUser
+        ? `<div class="comment-reply">
+            <input type="text" class="comment-input" id="comment-input-${topicId}" placeholder="${I18N.t('write_reply')}" maxlength="200">
+            <button class="btn-comment-send" onclick="sendComment(${topicId})">${I18N.t('send')}</button>
+           </div>`
+        : `<div class="comments-login-hint">${I18N.t('login_to_reply')}</div>`;
+    container.insertAdjacentHTML('beforeend', inputHtml);
+}
+
+function expandComments(topicId) {
+    commentsCache[topicId].expanded = true;
+    const container = document.getElementById(`comments-${topicId}`);
+    if (container) renderComments(topicId, container);
+}
+
+async function sendComment(topicId) {
+    const input = document.getElementById(`comment-input-${topicId}`);
+    if (!input) return;
+    const content = input.value.trim();
+    if (!content) return;
+
+    const hasChinese = /[\u4e00-\u9fff]/.test(content);
+    const limit = hasChinese ? 100 : 200;
+    if (content.length > limit) {
+        alert(I18N.t('reply_too_long', { current: content.length, limit: limit }));
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/topics/${topicId}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
+            body: JSON.stringify({ content })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            input.value = '';
+            await fetchComments(topicId);
+        } else {
+            alert(data.error || I18N.t('failed_to_send_reply'));
+        }
+    } catch(e) {
+        alert(I18N.t('network_error'));
+    }
+}
+
+function getAvatarInitials(name) {
+    if (!name) return '?';
+    return name.charAt(0).toUpperCase();
+}
+
+function formatCommentTime(ts) {
+    const d = new Date(ts + 'Z');
+    const now = new Date();
+    const diff = now - d;
+    if (diff < 60000) return I18N.t('time_just_now');
+    if (diff < 3600000) return I18N.t('time_minutes_ago', { n: Math.floor(diff / 60000) });
+    if (diff < 86400000) return I18N.t('time_hours_ago', { n: Math.floor(diff / 3600000) });
+    return d.toLocaleDateString();
 }
 
 function navigate(direction) {
@@ -449,14 +595,15 @@ function resetCreateForm() {
     $('#pollQuestion').value = '';
     $('#optionsContainer').innerHTML = `
         <div class="option-row">
-            <input type="text" class="option-input" placeholder="Option 1" maxlength="100">
-            <button class="btn-remove-option hidden" title="Remove">&times;</button>
+            <input type="text" class="option-input" placeholder="${I18N.t('option_placeholder', { n: 1 })}" maxlength="100">
+            <button class="btn-remove-option hidden" title="${I18N.t('remove')}">&times;</button>
         </div>
         <div class="option-row">
-            <input type="text" class="option-input" placeholder="Option 2" maxlength="100">
-            <button class="btn-remove-option hidden" title="Remove">&times;</button>
+            <input type="text" class="option-input" placeholder="${I18N.t('option_placeholder', { n: 2 })}" maxlength="100">
+            <button class="btn-remove-option hidden" title="${I18N.t('remove')}">&times;</button>
         </div>`;
     $('#pollCategory').value = 'General';
+    updateCategorySelect();
     $('#createMsg').classList.add('hidden');
     updateOptionRemoveButtons();
     fetchDailyRemaining();
@@ -470,7 +617,7 @@ async function fetchDailyRemaining() {
             const data = await res.json();
             const el = document.getElementById('dailyRemaining');
             if (el) {
-                el.textContent = `${data.remaining}/${data.limit} polls remaining today`;
+                el.textContent = I18N.t('polls_remaining', { remaining: data.remaining, limit: data.limit });
                 el.style.color = data.remaining === 0 ? 'var(--accent)' : 'var(--text-dim)';
             }
         }
@@ -485,8 +632,8 @@ function addOptionRow() {
     const row = document.createElement('div');
     row.className = 'option-row';
     row.innerHTML = `
-        <input type="text" class="option-input" placeholder="Option ${rows.length + 1}" maxlength="100">
-        <button class="btn-remove-option" title="Remove">&times;</button>`;
+        <input type="text" class="option-input" placeholder="${I18N.t('option_placeholder', { n: rows.length + 1 })}" maxlength="100">
+        <button class="btn-remove-option" title="${I18N.t('remove')}">&times;</button>`;
     container.appendChild(row);
     updateOptionRemoveButtons();
 }
@@ -505,8 +652,9 @@ function updateOptionRemoveButtons() {
     });
     // Update placeholders
     container.querySelectorAll('.option-input').forEach((inp, i) => {
-        if (!inp.placeholder || inp.placeholder.startsWith('Option ')) {
-            inp.placeholder = `Option ${i + 1}`;
+        const ph = inp.placeholder;
+        if (!ph || ph.startsWith(I18N.t('option_placeholder', { n: '' }).replace(/\d+/, '')) || /^Option\s/.test(ph)) {
+            inp.placeholder = I18N.t('option_placeholder', { n: i + 1 });
         }
     });
 }
@@ -520,11 +668,11 @@ async function submitPoll() {
         .filter(o => o);
 
     if (!question) {
-        showCreateMsg('Please enter a question', 'error');
+        showCreateMsg(I18N.t('please_enter_question'), 'error');
         return;
     }
     if (options.length < 2) {
-        showCreateMsg('At least 2 non-empty options required', 'error');
+        showCreateMsg(I18N.t('at_least_2_options'), 'error');
         return;
     }
 
@@ -543,22 +691,20 @@ async function submitPoll() {
         const data = await res.json();
 
         if (res.ok && data.success) {
-            showCreateMsg('Poll published successfully!', 'success');
+            showCreateMsg(I18N.t('poll_published'), 'success');
             resetCreateForm();
-            // Update daily remaining
             fetchDailyRemaining();
-            // Switch to Hot Topics tab
             setTimeout(() => switchTab('preset'), 1200);
         } else if (res.status === 429) {
-            showCreateMsg(data.error || 'Daily limit reached (3 polls per day)', 'error');
+            showCreateMsg(data.error || I18N.t('daily_limit'), 'error');
         } else if (res.status === 401) {
-            showCreateMsg('Please sign in first', 'error');
+            showCreateMsg(I18N.t('please_sign_in_first'), 'error');
             loginModal.classList.remove('hidden');
         } else {
-            showCreateMsg(data.error || 'Failed to publish', 'error');
+            showCreateMsg(data.error || I18N.t('failed_to_publish'), 'error');
         }
     } catch(e) {
-        showCreateMsg('Network error', 'error');
+        showCreateMsg(I18N.t('network_error_short'), 'error');
     } finally {
         $('#submitPollBtn').disabled = false;
     }
@@ -582,7 +728,6 @@ async function toggleMyPollsPanel() {
         return;
     }
 
-    // Close history if open
     closeHistoryPanel();
 
     overlay.classList.remove('hidden');
@@ -597,27 +742,28 @@ function closeMyPollsPanel() {
 
 async function loadMyPolls() {
     const list = $('#myPollsList');
-    list.innerHTML = '<p class="empty-msg">Loading...</p>';
+    list.innerHTML = `<p class="empty-msg">${I18N.t('loading')}</p>`;
 
     try {
         const res = await fetch('/api/user-topics/mine', { headers: authHeaders() });
         if (res.status === 401) {
-            list.innerHTML = '<p class="empty-msg">Please sign in to see your polls</p>';
+            list.innerHTML = `<p class="empty-msg">${I18N.t('sign_in_to_see_polls')}</p>`;
             return;
         }
         const polls = await res.json();
         if (polls.length === 0) {
-            list.innerHTML = '<p class="empty-msg">You have not created any polls yet</p>';
+            list.innerHTML = `<p class="empty-msg">${I18N.t('no_polls_yet')}</p>`;
             return;
         }
 
         list.innerHTML = polls.map(p => {
             const maxCount = Math.max(...p.votes.map(v => v.count), 1);
+            const voteText = p.total_votes === 1 ? I18N.t('vote_label') : I18N.t('votes_label');
             return `
             <div class="poll-item" id="my-poll-${p.id}">
-                <button class="pi-delete" onclick="deletePoll(${p.id})">Delete</button>
+                <button class="pi-delete" onclick="deletePoll(${p.id})">${I18N.t('delete')}</button>
                 <div class="pi-topic">${escapeHtml(p.question)}</div>
-                <div class="pi-meta">${p.category} &middot; ${p.total_votes} vote${p.total_votes !== 1 ? 's' : ''} &middot; ${new Date(p.created_at).toLocaleDateString()}</div>
+                <div class="pi-meta">${I18N.getCategoryKey(p.category)} &middot; ${p.total_votes} ${voteText} &middot; ${new Date(p.created_at).toLocaleDateString()}</div>
                 <div class="mini-bars">
                     ${p.votes.map(v => `
                         <div class="mini-bar-row">
@@ -630,12 +776,12 @@ async function loadMyPolls() {
             </div>`;
         }).join('');
     } catch(e) {
-        list.innerHTML = '<p class="empty-msg">Failed to load polls</p>';
+        list.innerHTML = `<p class="empty-msg">${I18N.t('failed_to_load_polls')}</p>`;
     }
 }
 
 async function deletePoll(id) {
-    if (!confirm('Delete this poll?')) return;
+    if (!confirm(I18N.t('delete_poll_confirm'))) return;
     try {
         const res = await fetch(`/api/user-topics/${id}`, {
             method: 'DELETE',
@@ -643,14 +789,13 @@ async function deletePoll(id) {
         });
         if (res.ok) {
             document.getElementById(`my-poll-${id}`)?.remove();
-            // If no polls left
             const remaining = $$('#myPollsList .poll-item');
             if (remaining.length === 0) {
-                $('#myPollsList').innerHTML = '<p class="empty-msg">You have not created any polls yet</p>';
+                $('#myPollsList').innerHTML = `<p class="empty-msg">${I18N.t('no_polls_yet')}</p>`;
             }
         }
     } catch(e) {
-        alert('Failed to delete poll');
+        alert(I18N.t('failed_to_delete_poll'));
     }
 }
 
@@ -664,7 +809,6 @@ async function toggleHistoryPanel() {
         return;
     }
 
-    // Close my polls if open
     closeMyPollsPanel();
 
     overlay.classList.remove('hidden');
@@ -679,13 +823,13 @@ function closeHistoryPanel() {
 
 async function loadHistory() {
     const list = $('#historyList');
-    list.innerHTML = '<p class="empty-msg">Loading...</p>';
+    list.innerHTML = `<p class="empty-msg">${I18N.t('loading')}</p>`;
 
     try {
         const res = await fetch('/api/my-votes');
         const votes = await res.json();
         if (votes.length === 0) {
-            list.innerHTML = '<p class="empty-msg">No votes yet. Start voting!</p>';
+            list.innerHTML = `<p class="empty-msg">${I18N.t('no_votes_yet')}</p>`;
             return;
         }
 
@@ -694,7 +838,7 @@ async function loadHistory() {
             return `
             <div class="history-item">
                 <div class="hi-topic">${escapeHtml(v.question)}</div>
-                <div class="hi-choice">You voted: ${escapeHtml(v.your_answer)}</div>
+                <div class="hi-choice">${I18N.t('you_voted', { answer: escapeHtml(v.your_answer) })}</div>
                 <div class="hi-time">${new Date(v.voted_at).toLocaleString()}</div>
                 <div class="mini-bars">
                     ${v.stats.map(s => `
@@ -708,7 +852,7 @@ async function loadHistory() {
             </div>`;
         }).join('');
     } catch(e) {
-        list.innerHTML = '<p class="empty-msg">Failed to load votes</p>';
+        list.innerHTML = `<p class="empty-msg">${I18N.t('failed_to_load_votes')}</p>`;
     }
 }
 
@@ -737,29 +881,29 @@ function closeFavoritesPanel() {
 
 async function loadFavorites() {
     const list = $('#favoritesList');
-    list.innerHTML = '<p class="empty-msg">Loading...</p>';
+    list.innerHTML = `<p class="empty-msg">${I18N.t('loading')}</p>`;
 
     try {
         const res = await fetch('/api/favorites', { headers: authHeaders() });
         if (res.status === 401) {
-            list.innerHTML = '<p class="empty-msg">Please sign in to see your favorites</p>';
+            list.innerHTML = `<p class="empty-msg">${I18N.t('sign_in_to_see_favorites')}</p>`;
             return;
         }
         const favs = await res.json();
         if (favs.length === 0) {
-            list.innerHTML = '<p class="empty-msg">No favorites yet. Star a topic to save it!</p>';
+            list.innerHTML = `<p class="empty-msg">${I18N.t('no_favorites_yet')}</p>`;
             return;
         }
 
         list.innerHTML = favs.map(f => `
             <div class="poll-item">
-                <button class="pi-fav-remove" onclick="removeFavorite('${f.topic_type}', ${f.topic_id})" title="Unfavorite">Remove</button>
+                <button class="pi-fav-remove" onclick="removeFavorite('${f.topic_type}', ${f.topic_id})" title="${I18N.t('unfavorite')}">${I18N.t('remove_fav')}</button>
                 <div class="pi-topic">${escapeHtml(f.question)}</div>
-                <div class="pi-meta">${escapeHtml(f.category)} &middot; ${f.topic_type === 'preset' ? 'Hot Topic' : 'Community Poll'}</div>
+                <div class="pi-meta">${I18N.getCategoryKey(f.category)} &middot; ${f.topic_type === 'preset' ? I18N.t('hot_topic') : I18N.t('community_poll')}</div>
             </div>
         `).join('');
     } catch(e) {
-        list.innerHTML = '<p class="empty-msg">Failed to load favorites</p>';
+        list.innerHTML = `<p class="empty-msg">${I18N.t('failed_to_load_favorites')}</p>`;
     }
 }
 
@@ -790,11 +934,9 @@ async function toggleFavorite(topicType, topicId) {
             if (res.ok) {
                 favoriteIds.add(key);
             } else if (res.status === 409) {
-                // Already favorited - add to set anyway
                 favoriteIds.add(key);
             }
         }
-        // Re-render current views
         renderCards();
     } catch(e) {
         // ignore
