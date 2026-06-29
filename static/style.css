@@ -304,8 +304,6 @@ body::before {
     z-index: 2;
     max-height: 75vh;
     overflow-y: auto;
-    display: flex;
-    flex-direction: column;
 }
 
 .vote-card.prev {
@@ -342,13 +340,6 @@ body::before {
     word-break: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
-}
-
-/* ── Card top (category + question + options) ── */
-.card-top {
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-    border-bottom: 1px solid var(--border);
 }
 
 .card-options {

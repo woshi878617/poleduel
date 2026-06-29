@@ -606,21 +606,19 @@ function renderCards() {
         const favTitle = I18N.t(isFav ? 'unfavorite' : 'favorite');
 
         card.innerHTML = `
-            <div class="card-top">
-                <div class="card-category">
-                    ${escapeHtml(catTranslated)}
-                    <button class="btn-fav ${isFav ? 'faved' : ''}" onclick="toggleFavorite('preset', ${t.id})" title="${favTitle}">${isFav ? '★' : '☆'}</button>
-                </div>
-                <div class="card-question">${escapeHtml(t.question)}</div>
-                <div class="card-options">
-                    ${t.options.map((opt, oi) => `
-                        <button class="card-option ${t.voted ? 'voted' : ''} ${t._chosen === oi ? 'chosen' : ''}"
-                                data-topic="${t.id}" data-option="${oi}"
-                                ${t.voted ? 'disabled' : ''}>
-                            ${escapeHtml(opt)}
-                        </button>
-                    `).join('')}
-                </div>
+            <div class="card-category">
+                ${escapeHtml(catTranslated)}
+                <button class="btn-fav ${isFav ? 'faved' : ''}" onclick="toggleFavorite('preset', ${t.id})" title="${favTitle}">${isFav ? '★' : '☆'}</button>
+            </div>
+            <div class="card-question">${escapeHtml(t.question)}</div>
+            <div class="card-options">
+                ${t.options.map((opt, oi) => `
+                    <button class="card-option ${t.voted ? 'voted' : ''} ${t._chosen === oi ? 'chosen' : ''}"
+                            data-topic="${t.id}" data-option="${oi}"
+                            ${t.voted ? 'disabled' : ''}>
+                        ${escapeHtml(opt)}
+                    </button>
+                `).join('')}
             </div>
             <div class="card-stats" style="display:${t.voted || t._chosen !== undefined ? 'block' : 'none'}">
                 ${(t._stats || []).map(s => `
