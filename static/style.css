@@ -304,6 +304,7 @@ body::before {
     z-index: 2;
     max-height: 75vh;
     overflow-y: auto;
+    overflow-anchor: none;
     display: block;
 }
 

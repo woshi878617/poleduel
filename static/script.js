@@ -790,6 +790,9 @@ async function fetchComments(topicId) {
         const comments = await res.json();
         commentsCache[topicId] = { comments, expanded: false };
         renderComments(topicId, container);
+        // 评论异步加载会顶开标题，重置滚动
+        const card = container.closest('.vote-card.active');
+        if (card) card.scrollTop = 0;
     } catch(e) {
         container.innerHTML = '';
     }
