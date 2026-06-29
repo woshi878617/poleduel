@@ -301,6 +301,8 @@ body::before {
     opacity: 1;
     transform: scale(1);
     z-index: 2;
+    max-height: 75vh;
+    overflow-y: auto;
 }
 
 .vote-card.prev {
@@ -359,7 +361,7 @@ body::before {
 }
 
 .card-option:hover { border-color: var(--accent); background: rgba(123, 140, 255, 0.06); }
-.card-option.voted { pointer-events: none; opacity: 0.6; }
+.card-option.voted { pointer-events: none; opacity: 0.6; cursor: not-allowed; }
 .card-option.chosen { border-color: var(--accent); background: rgba(123, 140, 255, 0.10); color: var(--accent); font-weight: 600; }
 
 /* Stats in card */
