@@ -1,13 +1,16 @@
 import os
 import re
 import json
-import sqlite3
 import secrets
 import hashlib
 import urllib.request
 import urllib.error
 from datetime import datetime
 from functools import wraps
+
+import psycopg2
+import psycopg2.extras
+import psycopg2.errors
 from flask import Flask, request, jsonify, g, send_from_directory
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
@@ -22,20 +25,40 @@ def add_cache_control(response):
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'data.db')
 TOPICS_PATH = os.path.join(BASE_DIR, 'topics.json')
 
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
 
 
 # ── Database ──────────────────────────────────────────────
 
+class DbWrapper:
+    """Thin wrapper around psycopg2 connection to mimic sqlite3 .execute() API."""
+    def __init__(self, conn):
+        self.conn = conn
+
+    def execute(self, query, params=None):
+        cur = self.conn.cursor()
+        if params is not None:
+            cur.execute(query, params)
+        else:
+            cur.execute(query)
+        return cur
+
+    def commit(self):
+        self.conn.commit()
+
+    def close(self):
+        self.conn.close()
+
+
 def get_db():
     if 'db' not in g:
-        g.db = sqlite3.connect(DB_PATH)
-        g.db.row_factory = sqlite3.Row
-        g.db.execute("PRAGMA journal_mode=WAL")
-        g.db.execute("PRAGMA foreign_keys=ON")
+        if not DATABASE_URL:
+            raise RuntimeError('DATABASE_URL environment variable is not set')
+        conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+        g.db = DbWrapper(conn)
     return g.db
 
 
@@ -47,11 +70,15 @@ def close_db(exception):
 
 
 def init_db():
-    db = sqlite3.connect(DB_PATH)
-    db.execute("PRAGMA foreign_keys=ON")
-    db.executescript("""
+    """Create tables if they don't exist (PostgreSQL)."""
+    if not DATABASE_URL:
+        print("WARNING: DATABASE_URL not set, skipping database initialization")
+        return
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS votes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             topic_id INTEGER NOT NULL,
             option_index INTEGER NOT NULL,
             ip_address TEXT NOT NULL,
@@ -60,7 +87,7 @@ def init_db():
         );
 
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             auth_type TEXT NOT NULL CHECK(auth_type IN ('guest', 'google')),
             identifier TEXT NOT NULL,
             display_name TEXT DEFAULT '',
@@ -70,7 +97,7 @@ def init_db():
         );
 
         CREATE TABLE IF NOT EXISTS user_topics (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             question TEXT NOT NULL,
             options_json TEXT NOT NULL,
@@ -80,7 +107,7 @@ def init_db():
         );
 
         CREATE TABLE IF NOT EXISTS user_topic_votes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             topic_id INTEGER NOT NULL,
             option_index INTEGER NOT NULL,
             ip_address TEXT NOT NULL,
@@ -90,7 +117,7 @@ def init_db():
         );
 
         CREATE TABLE IF NOT EXISTS favorites (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             topic_type TEXT NOT NULL CHECK(topic_type IN ('preset', 'user')),
             topic_id INTEGER NOT NULL,
@@ -105,7 +132,7 @@ def init_db():
         );
 
         CREATE TABLE IF NOT EXISTS push_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             topic_id INTEGER NOT NULL,
             ip_hash TEXT NOT NULL,
             action TEXT NOT NULL CHECK(action IN ('push', 'skip')),
@@ -113,7 +140,7 @@ def init_db():
         );
 
         CREATE TABLE IF NOT EXISTS comments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             topic_id TEXT NOT NULL,
             user_id TEXT NOT NULL,
             content TEXT NOT NULL,
@@ -126,12 +153,10 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_push_logs_topic_ip ON push_logs(topic_id, ip_hash);
     """)
     # Migration: add country column if not exists
-    try:
-        db.execute("ALTER TABLE votes ADD COLUMN country TEXT DEFAULT '未知'")
-    except sqlite3.OperationalError:
-        pass
-    db.commit()
-    db.close()
+    cur.execute("ALTER TABLE votes ADD COLUMN IF NOT EXISTS country TEXT DEFAULT '未知'")
+    conn.commit()
+    cur.close()
+    conn.close()
 
 
 def ensure_topic_heat():
@@ -140,7 +165,7 @@ def ensure_topic_heat():
     topics = load_preset_topics()
     for t in topics:
         db.execute(
-            "INSERT OR IGNORE INTO topic_heat (topic_id, heat) VALUES (?, 100)",
+            "INSERT INTO topic_heat (topic_id, heat) VALUES (%s, 100) ON CONFLICT (topic_id) DO NOTHING",
             (t['id'],)
         )
     db.commit()
@@ -165,7 +190,7 @@ def hash_ip(ip):
 
 def get_user_by_token(token):
     db = get_db()
-    return db.execute("SELECT * FROM users WHERE token = ?", (token,)).fetchone()
+    return db.execute("SELECT * FROM users WHERE token = %s", (token,)).fetchone()
 
 
 def require_auth(f):
@@ -232,7 +257,7 @@ def get_topics():
     ensure_topic_heat()
 
     voted = db.execute(
-        "SELECT topic_id FROM votes WHERE ip_address = ?", (ip,)
+        "SELECT topic_id FROM votes WHERE ip_address = %s", (ip,)
     ).fetchall()
     voted_ids = {row['topic_id'] for row in voted}
 
@@ -271,17 +296,18 @@ def vote_preset():
     db = get_db()
     try:
         db.execute(
-            "INSERT INTO votes (topic_id, option_index, ip_address, country) VALUES (?, ?, ?, ?)",
+            "INSERT INTO votes (topic_id, option_index, ip_address, country) VALUES (%s, %s, %s, %s)",
             (topic_id, option_index, ip, country)
         )
         # Vote = participation = +2 heat
         db.execute(
-            "INSERT INTO topic_heat (topic_id, heat) VALUES (?, 102) ON CONFLICT(topic_id) DO UPDATE SET heat = heat + 2",
+            "INSERT INTO topic_heat (topic_id, heat) VALUES (%s, 102) ON CONFLICT(topic_id) DO UPDATE SET heat = topic_heat.heat + 2",
             (topic_id,)
         )
         db.commit()
         return jsonify({'success': True, 'message': 'Vote recorded'})
-    except sqlite3.IntegrityError:
+    except psycopg2.errors.UniqueViolation:
+        db.conn.rollback()
         return jsonify({'error': 'You have already voted on this topic'}), 409
 
 
@@ -297,25 +323,26 @@ def push_topic(topic_id):
     db = get_db()
 
     # Check 24h cooldown
-    cutoff = (datetime.utcnow().timestamp() - 86400)
+    from datetime import timezone
+    cutoff = (datetime.now(timezone.utc).timestamp() - 86400)
     existing = db.execute(
-        "SELECT id FROM push_logs WHERE topic_id = ? AND ip_hash = ? AND action = 'push' AND strftime('%s', created_at) > ?",
-        (topic_id, ip_hash_val, str(int(cutoff)))
+        "SELECT id FROM push_logs WHERE topic_id = %s AND ip_hash = %s AND action = 'push' AND EXTRACT(EPOCH FROM created_at) > %s",
+        (topic_id, ip_hash_val, cutoff)
     ).fetchone()
     if existing:
         return jsonify({'error': 'You have already pushed this topic in the last 24 hours'}), 429
 
     db.execute(
-        "INSERT INTO topic_heat (topic_id, heat) VALUES (?, 110) ON CONFLICT(topic_id) DO UPDATE SET heat = heat + 10",
+        "INSERT INTO topic_heat (topic_id, heat) VALUES (%s, 110) ON CONFLICT(topic_id) DO UPDATE SET heat = topic_heat.heat + 10",
         (topic_id,)
     )
     db.execute(
-        "INSERT INTO push_logs (topic_id, ip_hash, action) VALUES (?, ?, 'push')",
+        "INSERT INTO push_logs (topic_id, ip_hash, action) VALUES (%s, %s, 'push')",
         (topic_id, ip_hash_val)
     )
     db.commit()
 
-    new_heat = db.execute("SELECT heat FROM topic_heat WHERE topic_id = ?", (topic_id,)).fetchone()['heat']
+    new_heat = db.execute("SELECT heat FROM topic_heat WHERE topic_id = %s", (topic_id,)).fetchone()['heat']
     return jsonify({'success': True, 'heat': new_heat})
 
 
@@ -331,16 +358,16 @@ def skip_topic(topic_id):
     db = get_db()
 
     db.execute(
-        "INSERT INTO topic_heat (topic_id, heat) VALUES (?, 100) ON CONFLICT(topic_id) DO UPDATE SET heat = MAX(0, heat - 3)",
+        "INSERT INTO topic_heat (topic_id, heat) VALUES (%s, 100) ON CONFLICT(topic_id) DO UPDATE SET heat = GREATEST(0, topic_heat.heat - 3)",
         (topic_id,)
     )
     db.execute(
-        "INSERT INTO push_logs (topic_id, ip_hash, action) VALUES (?, ?, 'skip')",
+        "INSERT INTO push_logs (topic_id, ip_hash, action) VALUES (%s, %s, 'skip')",
         (topic_id, ip_hash_val)
     )
     db.commit()
 
-    new_heat = db.execute("SELECT heat FROM topic_heat WHERE topic_id = ?", (topic_id,)).fetchone()['heat']
+    new_heat = db.execute("SELECT heat FROM topic_heat WHERE topic_id = %s", (topic_id,)).fetchone()['heat']
     return jsonify({'success': True, 'heat': new_heat})
 
 
@@ -361,7 +388,7 @@ def get_topic_stats(topic_id):
 
     # Option stats
     rows = db.execute(
-        "SELECT option_index, COUNT(*) as count FROM votes WHERE topic_id = ? GROUP BY option_index",
+        "SELECT option_index, COUNT(*) as count FROM votes WHERE topic_id = %s GROUP BY option_index",
         (topic_id,)
     ).fetchall()
 
@@ -383,7 +410,7 @@ def get_topic_stats(topic_id):
 
     # Country stats
     country_rows = db.execute(
-        "SELECT country, COUNT(*) as count FROM votes WHERE topic_id = ? GROUP BY country ORDER BY count DESC",
+        "SELECT country, COUNT(*) as count FROM votes WHERE topic_id = %s GROUP BY country ORDER BY count DESC",
         (topic_id,)
     ).fetchall()
 
@@ -406,7 +433,7 @@ def my_votes():
     ip = get_client_ip()
     db = get_db()
     rows = db.execute(
-        "SELECT topic_id, option_index, voted_at FROM votes WHERE ip_address = ? ORDER BY voted_at DESC",
+        "SELECT topic_id, option_index, voted_at FROM votes WHERE ip_address = %s ORDER BY voted_at DESC",
         (ip,)
     ).fetchall()
 
@@ -417,7 +444,7 @@ def my_votes():
         if not t:
             continue
         stats_rows = db.execute(
-            "SELECT option_index, COUNT(*) as count FROM votes WHERE topic_id = ? GROUP BY option_index",
+            "SELECT option_index, COUNT(*) as count FROM votes WHERE topic_id = %s GROUP BY option_index",
             (r['topic_id'],)
         ).fetchall()
         stats = {i: 0 for i in range(len(t['options']))}
@@ -442,7 +469,7 @@ def my_votes():
 def reset_ip():
     ip = get_client_ip()
     db = get_db()
-    db.execute("DELETE FROM votes WHERE ip_address = ?", (ip,))
+    db.execute("DELETE FROM votes WHERE ip_address = %s", (ip,))
     db.commit()
     return jsonify({'success': True, 'message': 'IP voting records cleared'})
 
@@ -456,7 +483,7 @@ def auth_guest():
     db = get_db()
 
     existing = db.execute(
-        "SELECT * FROM users WHERE auth_type = 'guest' AND identifier = ?",
+        "SELECT * FROM users WHERE auth_type = 'guest' AND identifier = %s",
         (identifier,)
     ).fetchone()
 
@@ -469,12 +496,12 @@ def auth_guest():
     token = generate_token()
     display_name = f"Guest-{ip.split('.')[-1]}"
     db.execute(
-        "INSERT INTO users (auth_type, identifier, token, display_name) VALUES (?, ?, ?, ?)",
+        "INSERT INTO users (auth_type, identifier, token, display_name) VALUES (%s, %s, %s, %s)",
         ('guest', identifier, token, display_name)
     )
     db.commit()
 
-    user = db.execute("SELECT * FROM users WHERE token = ?", (token,)).fetchone()
+    user = db.execute("SELECT * FROM users WHERE token = %s", (token,)).fetchone()
     return jsonify({'token': token, 'user': user_to_dict(user)}), 201
 
 
@@ -511,13 +538,13 @@ def auth_google():
 
     db = get_db()
     existing = db.execute(
-        "SELECT * FROM users WHERE auth_type = 'google' AND identifier = ?",
+        "SELECT * FROM users WHERE auth_type = 'google' AND identifier = %s",
         (google_id,)
     ).fetchone()
 
     if existing:
         db.execute(
-            "UPDATE users SET display_name = ?, avatar_url = ? WHERE id = ?",
+            "UPDATE users SET display_name = %s, avatar_url = %s WHERE id = %s",
             (name, picture, existing['id'])
         )
         db.commit()
@@ -525,12 +552,12 @@ def auth_google():
 
     token = generate_token()
     db.execute(
-        "INSERT INTO users (auth_type, identifier, token, display_name, avatar_url) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO users (auth_type, identifier, token, display_name, avatar_url) VALUES (%s, %s, %s, %s, %s)",
         ('google', google_id, token, name, picture)
     )
     db.commit()
 
-    user = db.execute("SELECT * FROM users WHERE token = ?", (token,)).fetchone()
+    user = db.execute("SELECT * FROM users WHERE token = %s", (token,)).fetchone()
     return jsonify({'token': token, 'user': user_to_dict(user)}), 201
 
 
@@ -579,7 +606,7 @@ def bind_google():
 
     # Check if this Google account is already used by another user
     existing_google = db.execute(
-        "SELECT * FROM users WHERE auth_type = 'google' AND identifier = ?",
+        "SELECT * FROM users WHERE auth_type = 'google' AND identifier = %s",
         (google_id,)
     ).fetchone()
 
@@ -590,13 +617,13 @@ def bind_google():
 
     # Upgrade current guest user to Google
     db.execute(
-        "UPDATE users SET auth_type = 'google', identifier = ?, display_name = ?, avatar_url = ? WHERE id = ?",
+        "UPDATE users SET auth_type = 'google', identifier = %s, display_name = %s, avatar_url = %s WHERE id = %s",
         (google_id, name, picture, g.current_user['id'])
     )
     db.commit()
 
     # Refresh user data
-    user = db.execute("SELECT * FROM users WHERE id = ?", (g.current_user['id'],)).fetchone()
+    user = db.execute("SELECT * FROM users WHERE id = %s", (g.current_user['id'],)).fetchone()
     return jsonify({'token': user['token'], 'user': user_to_dict(user)})
 
 
@@ -636,19 +663,19 @@ def create_user_topic():
     # Check daily limit (3 per day)
     today = datetime.utcnow().strftime('%Y-%m-%d')
     daily_count = db.execute(
-        "SELECT COUNT(*) FROM user_topics WHERE user_id = ? AND date(created_at) = ?",
+        "SELECT COUNT(*) FROM user_topics WHERE user_id = %s AND date(created_at) = %s",
         (g.current_user['id'], today)
-    ).fetchone()[0]
+    ).fetchone()['count']
     if daily_count >= 3:
         return jsonify({'error': 'Daily limit reached (3 polls per day)', 'remaining': 0}), 429
 
-    db.execute(
-        "INSERT INTO user_topics (user_id, question, options_json, category) VALUES (?, ?, ?, ?)",
+    cursor = db.execute(
+        "INSERT INTO user_topics (user_id, question, options_json, category) VALUES (%s, %s, %s, %s) RETURNING id",
         (g.current_user['id'], question, json.dumps(options), category)
     )
+    topic_id = cursor.fetchone()['id']
     db.commit()
 
-    topic_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
     return jsonify({
         'success': True,
         'topic': {
@@ -666,7 +693,7 @@ def create_user_topic():
 def my_user_topics():
     db = get_db()
     rows = db.execute(
-        "SELECT * FROM user_topics WHERE user_id = ? ORDER BY created_at DESC",
+        "SELECT * FROM user_topics WHERE user_id = %s ORDER BY created_at DESC",
         (g.current_user['id'],)
     ).fetchall()
 
@@ -674,7 +701,7 @@ def my_user_topics():
     for r in rows:
         options = json.loads(r['options_json'])
         vr = db.execute(
-            "SELECT option_index, COUNT(*) as count FROM user_topic_votes WHERE topic_id = ? GROUP BY option_index",
+            "SELECT option_index, COUNT(*) as count FROM user_topic_votes WHERE topic_id = %s GROUP BY option_index",
             (r['id'],)
         ).fetchall()
         stats = {i: 0 for i in range(len(options))}
@@ -705,12 +732,12 @@ def all_user_topics():
     for r in rows:
         options = json.loads(r['options_json'])
         already_voted = db.execute(
-            "SELECT option_index FROM user_topic_votes WHERE topic_id = ? AND ip_address = ?",
+            "SELECT option_index FROM user_topic_votes WHERE topic_id = %s AND ip_address = %s",
             (r['id'], ip)
         ).fetchone()
 
         vr = db.execute(
-            "SELECT option_index, COUNT(*) as count FROM user_topic_votes WHERE topic_id = ? GROUP BY option_index",
+            "SELECT option_index, COUNT(*) as count FROM user_topic_votes WHERE topic_id = %s GROUP BY option_index",
             (r['id'],)
         ).fetchall()
         stats = {i: 0 for i in range(len(options))}
@@ -736,13 +763,13 @@ def all_user_topics():
 @app.route('/api/user-topics/<int:topic_id>/stats')
 def user_topic_stats(topic_id):
     db = get_db()
-    row = db.execute("SELECT * FROM user_topics WHERE id = ?", (topic_id,)).fetchone()
+    row = db.execute("SELECT * FROM user_topics WHERE id = %s", (topic_id,)).fetchone()
     if not row:
         return jsonify({'error': 'Topic not found'}), 404
 
     options = json.loads(row['options_json'])
     vr = db.execute(
-        "SELECT option_index, COUNT(*) as count FROM user_topic_votes WHERE topic_id = ? GROUP BY option_index",
+        "SELECT option_index, COUNT(*) as count FROM user_topic_votes WHERE topic_id = %s GROUP BY option_index",
         (topic_id,)
     ).fetchall()
     stats = {i: 0 for i in range(len(options))}
@@ -767,7 +794,7 @@ def vote_user_topic(topic_id):
         return jsonify({'error': 'option_index required'}), 400
 
     db = get_db()
-    row = db.execute("SELECT * FROM user_topics WHERE id = ?", (topic_id,)).fetchone()
+    row = db.execute("SELECT * FROM user_topics WHERE id = %s", (topic_id,)).fetchone()
     if not row:
         return jsonify({'error': 'Topic not found'}), 404
 
@@ -778,12 +805,13 @@ def vote_user_topic(topic_id):
     ip = get_client_ip()
     try:
         db.execute(
-            "INSERT INTO user_topic_votes (topic_id, option_index, ip_address) VALUES (?, ?, ?)",
+            "INSERT INTO user_topic_votes (topic_id, option_index, ip_address) VALUES (%s, %s, %s)",
             (topic_id, option_index, ip)
         )
         db.commit()
         return jsonify({'success': True, 'message': 'Vote recorded'})
-    except sqlite3.IntegrityError:
+    except psycopg2.errors.UniqueViolation:
+        db.conn.rollback()
         return jsonify({'error': 'You have already voted on this topic'}), 409
 
 
@@ -791,12 +819,12 @@ def vote_user_topic(topic_id):
 @require_auth
 def delete_user_topic(topic_id):
     db = get_db()
-    row = db.execute("SELECT * FROM user_topics WHERE id = ? AND user_id = ?",
+    row = db.execute("SELECT * FROM user_topics WHERE id = %s AND user_id = %s",
                      (topic_id, g.current_user['id'])).fetchone()
     if not row:
         return jsonify({'error': 'Topic not found or not yours'}), 404
 
-    db.execute("DELETE FROM user_topics WHERE id = ?", (topic_id,))
+    db.execute("DELETE FROM user_topics WHERE id = %s", (topic_id,))
     db.commit()
     return jsonify({'success': True, 'message': 'Topic deleted'})
 
@@ -807,9 +835,9 @@ def daily_remaining():
     db = get_db()
     today = datetime.utcnow().strftime('%Y-%m-%d')
     daily_count = db.execute(
-        "SELECT COUNT(*) FROM user_topics WHERE user_id = ? AND date(created_at) = ?",
+        "SELECT COUNT(*) FROM user_topics WHERE user_id = %s AND date(created_at) = %s",
         (g.current_user['id'], today)
-    ).fetchone()[0]
+    ).fetchone()['count']
     return jsonify({'used': daily_count, 'remaining': max(0, 3 - daily_count), 'limit': 3})
 
 
@@ -836,18 +864,19 @@ def add_favorite():
         if not topic:
             return jsonify({'error': 'Topic not found'}), 404
     else:
-        row = db.execute("SELECT * FROM user_topics WHERE id = ?", (topic_id,)).fetchone()
+        row = db.execute("SELECT * FROM user_topics WHERE id = %s", (topic_id,)).fetchone()
         if not row:
             return jsonify({'error': 'Topic not found'}), 404
 
     try:
         db.execute(
-            "INSERT INTO favorites (user_id, topic_type, topic_id) VALUES (?, ?, ?)",
+            "INSERT INTO favorites (user_id, topic_type, topic_id) VALUES (%s, %s, %s)",
             (g.current_user['id'], topic_type, topic_id)
         )
         db.commit()
         return jsonify({'success': True, 'message': 'Added to favorites'}), 201
-    except sqlite3.IntegrityError:
+    except psycopg2.errors.UniqueViolation:
+        db.conn.rollback()
         return jsonify({'error': 'Already in favorites'}), 409
 
 
@@ -865,7 +894,7 @@ def remove_favorite():
 
     db = get_db()
     db.execute(
-        "DELETE FROM favorites WHERE user_id = ? AND topic_type = ? AND topic_id = ?",
+        "DELETE FROM favorites WHERE user_id = %s AND topic_type = %s AND topic_id = %s",
         (g.current_user['id'], topic_type, topic_id)
     )
     db.commit()
@@ -877,7 +906,7 @@ def remove_favorite():
 def list_favorites():
     db = get_db()
     rows = db.execute(
-        "SELECT * FROM favorites WHERE user_id = ? ORDER BY created_at DESC",
+        "SELECT * FROM favorites WHERE user_id = %s ORDER BY created_at DESC",
         (g.current_user['id'],)
     ).fetchall()
 
@@ -899,7 +928,7 @@ def list_favorites():
                 'created_at': r['created_at']
             })
         else:
-            ut = db.execute("SELECT * FROM user_topics WHERE id = ?", (r['topic_id'],)).fetchone()
+            ut = db.execute("SELECT * FROM user_topics WHERE id = %s", (r['topic_id'],)).fetchone()
             if not ut:
                 continue
             result.append({
@@ -925,7 +954,7 @@ def get_comments(topic_id):
                   u.display_name, u.avatar_url
            FROM comments c
            JOIN users u ON c.user_id = u.id
-           WHERE c.topic_id = ?
+           WHERE c.topic_id = %s
            ORDER BY c.created_at ASC""",
         (str(topic_id),)
     ).fetchall()
@@ -962,20 +991,20 @@ def create_comment(topic_id):
             return jsonify({'error': f'Reply too long ({len(content)} chars, limit 200)'}), 400
 
     db = get_db()
-    db.execute(
-        "INSERT INTO comments (topic_id, user_id, content) VALUES (?, ?, ?)",
+    cursor = db.execute(
+        "INSERT INTO comments (topic_id, user_id, content) VALUES (%s, %s, %s) RETURNING id",
         (str(topic_id), g.current_user['id'], content)
     )
+    comment_id = cursor.fetchone()['id']
     db.commit()
 
-    comment_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
     # Return the new comment with user info
     row = db.execute(
         """SELECT c.id, c.topic_id, c.user_id, c.content, c.created_at,
                   u.display_name, u.avatar_url
            FROM comments c
            JOIN users u ON c.user_id = u.id
-           WHERE c.id = ?""",
+           WHERE c.id = %s""",
         (comment_id,)
     ).fetchone()
 
