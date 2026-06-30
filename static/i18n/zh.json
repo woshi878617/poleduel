@@ -31,16 +31,16 @@
   "category_science": "科学",
   "category_society": "社会",
 
-  "my_polls": "我的投票",
+  "my_polls": "我创建的",
   "loading_polls": "加载中…",
-  "my_votes": "我的票选",
+  "my_votes": "投票记录",
   "loading_votes": "加载中…",
   "my_favorites": "我的收藏",
   "loading_favorites": "加载中…",
 
   "btn_favorites": "★ 收藏",
-  "btn_my_votes": "✓ 我的票选",
-  "btn_my_polls": "☰ 我的投票",
+  "btn_my_votes": "✓ 投票记录",
+  "btn_my_polls": "☰ 我创建的",
 
   "no_topics": "暂无话题",
   "favorite": "收藏",

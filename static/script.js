@@ -364,6 +364,18 @@ async function init() {
             const parsed = JSON.parse(saved);
             authToken = parsed.token;
             currentUser = parsed.user;
+            // Validate token against server; clear if stale
+            if (authToken) {
+                try {
+                    const checkRes = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${authToken}` } });
+                    if (!checkRes.ok) {
+                        authToken = null;
+                        currentUser = null;
+                        localStorage.removeItem('vote_site_auth');
+                        console.warn('Stored token expired or invalid, cleared');
+                    }
+                } catch(e) { /* network error — keep token, try again next time */ }
+            }
             updateUIForAuth();
         } catch(e) { /* ignore */ }
     }
@@ -862,6 +874,14 @@ async function sendComment(topicId) {
             input.value = '';
             await fetchComments(topicId);
         } else {
+            // If token is stale/invalid, clear auth and prompt re-login
+            if (res.status === 401) {
+                authToken = null;
+                currentUser = null;
+                localStorage.removeItem('vote_site_auth');
+                updateUIForAuth();
+                loginModal.classList.remove('hidden');
+            }
             alert(data.error || I18N.t('failed_to_send_reply'));
         }
     } catch(e) {

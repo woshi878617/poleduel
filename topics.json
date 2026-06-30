@@ -525,5 +525,225 @@
       "Mandate transparency and user control"
     ],
     "category": "Society"
+  },
+  {
+    "id": 51,
+    "question": "Should governments have the authority to block public access to powerful AI models over national security concerns?",
+    "options": [
+      "Yes, national security first",
+      "Only with independent oversight",
+      "No, it stifles innovation",
+      "Case-by-case review needed"
+    ],
+    "category": "Technology"
+  },
+  {
+    "id": 52,
+    "question": "Is recursive self-improving AI (RSI) a dangerous path that must be regulated before it accelerates beyond human control?",
+    "options": [
+      "Yes, regulate immediately",
+      "Allow research with safeguards",
+      "No, let innovation proceed",
+      "Too early to decide"
+    ],
+    "category": "Technology"
+  },
+  {
+    "id": 53,
+    "question": "Should AI data centers face a moratorium in regions facing water shortages due to their massive resource consumption?",
+    "options": [
+      "Yes, water security comes first",
+      "Require renewable cooling only",
+      "No, economic benefits outweigh costs",
+      "Local communities should decide"
+    ],
+    "category": "Technology"
+  },
+  {
+    "id": 54,
+    "question": "Will quantum computing break all current encryption standards within the next five years, threatening global cybersecurity?",
+    "options": [
+      "Yes, it's imminent",
+      "Not within 5 years, but 10+",
+      "No, post-quantum crypto will hold",
+      "Quantum supremacy is overhyped"
+    ],
+    "category": "Technology"
+  },
+  {
+    "id": 55,
+    "question": "Is Japan's military expansion under PM Takaichi a justified response to regional threats or a dangerous return to militarism?",
+    "options": [
+      "Justified self-defense",
+      "Understandable but concerning",
+      "Dangerous militarism",
+      "Japan should stay fully pacifist"
+    ],
+    "category": "World"
+  },
+  {
+    "id": 56,
+    "question": "Should FIFA relocate World Cup matches from host nations that deny entry to players and officials from certain countries?",
+    "options": [
+      "Yes, sports must be open to all",
+      "Sanction the host, keep matches",
+      "No, host sovereignty matters",
+      "Let teams boycott individually"
+    ],
+    "category": "World"
+  },
+  {
+    "id": 57,
+    "question": "Was the US-Iran nuclear memorandum signed in June 2026 a genuine peace breakthrough or just kicking the can down the road?",
+    "options": [
+      "Genuine breakthrough",
+      "Kicking the can down the road",
+      "Iran won't comply long-term",
+      "Too early to judge"
+    ],
+    "category": "World"
+  },
+  {
+    "id": 58,
+    "question": "Should the United Nations Security Council be reformed to add permanent seats for Africa, Latin America, and India?",
+    "options": [
+      "Yes, full reform now",
+      "Add non-veto permanent seats",
+      "No, current structure works",
+      "Abolish veto power entirely"
+    ],
+    "category": "Politics"
+  },
+  {
+    "id": 59,
+    "question": "Should social media platforms be legally required to enforce mandatory age verification for all users?",
+    "options": [
+      "Yes, protect minors",
+      "Yes, but privacy safeguards needed",
+      "No, it violates anonymity",
+      "Parental controls are enough"
+    ],
+    "category": "Society"
+  },
+  {
+    "id": 60,
+    "question": "Should content creators who stage fake crisis videos for views face criminal penalties for wasting public resources?",
+    "options": [
+      "Yes, criminal penalties",
+      "Heavy fines only",
+      "Platform bans are enough",
+      "No, it's protected expression"
+    ],
+    "category": "Society"
+  },
+  {
+    "id": 61,
+    "question": "Do celebrity children deserve the same freedom of self-expression and bodily autonomy as non-famous teenagers?",
+    "options": [
+      "Yes, full autonomy at 18",
+      "Yes, but parents should guide",
+      "No, public figures have extra responsibility",
+      "Media should stop scrutinizing them"
+    ],
+    "category": "Society"
+  },
+  {
+    "id": 62,
+    "question": "Is a universal four-day work week achievable for most industries worldwide by 2035?",
+    "options": [
+      "Yes, AI will enable it",
+      "Only for knowledge workers",
+      "No, many sectors can't adapt",
+      "It would increase unemployment"
+    ],
+    "category": "Society"
+  },
+  {
+    "id": 63,
+    "question": "Is FIFA's mandatory cooling break rule during the 2026 World Cup a necessary safety measure or a disruption to competitive integrity?",
+    "options": [
+      "Necessary for player safety",
+      "Apply only in hot venues",
+      "Disrupts competitive flow",
+      "It's just a cash grab for ads"
+    ],
+    "category": "Sports"
+  },
+  {
+    "id": 64,
+    "question": "Are 2026 World Cup ticket prices reaching $35,000 for finals acceptable market pricing or exploitative of ordinary fans?",
+    "options": [
+      "Pure exploitation",
+      "Market pricing is fair",
+      "FIFA should cap resale prices",
+      "More affordable tickets needed"
+    ],
+    "category": "Sports"
+  },
+  {
+    "id": 65,
+    "question": "Should professional sports leagues ban AI-assisted performance analytics during live games to maintain fair competition?",
+    "options": [
+      "Yes, ban all AI in-game",
+      "Allow only post-game analysis",
+      "No, embrace technology",
+      "Regulate by sport individually"
+    ],
+    "category": "Sports"
+  },
+  {
+    "id": 66,
+    "question": "Is the European Central Bank's rate hike in June 2026 worsening Germany's slide into recession for the sake of inflation control?",
+    "options": [
+      "Yes, hurting growth badly",
+      "Necessary medicine for inflation",
+      "ECB should have waited",
+      "Germany needs fiscal stimulus instead"
+    ],
+    "category": "Economy"
+  },
+  {
+    "id": 67,
+    "question": "Should central banks worldwide accelerate the introduction of CBDCs (Central Bank Digital Currencies) to replace physical cash?",
+    "options": [
+      "Yes, it's the future",
+      "Yes, but preserve cash options",
+      "No, privacy risks too high",
+      "No, let private crypto lead"
+    ],
+    "category": "Economy"
+  },
+  {
+    "id": 68,
+    "question": "Should fossil-fuel-producing nations be barred from presiding over UN climate negotiations due to conflicts of interest?",
+    "options": [
+      "Yes, clear conflict of interest",
+      "Allow participation but not presidency",
+      "No, all nations must be included",
+      "Impose transparency requirements instead"
+    ],
+    "category": "Environment"
+  },
+  {
+    "id": 69,
+    "question": "Does the revision of worst-case climate warming scenarios prove that previous climate models were overly alarmist?",
+    "options": [
+      "Yes, alarmism was exaggerated",
+      "No, models improved with data",
+      "The core threat remains unchanged",
+      "Uncertain, need more research"
+    ],
+    "category": "Environment"
+  },
+  {
+    "id": 70,
+    "question": "Should human germline gene editing be legalized for consumer use, allowing parents to select or enhance genetic traits of embryos?",
+    "options": [
+      "Yes, parental choice matters",
+      "Only for disease prevention",
+      "No, it's unethical eugenics",
+      "Moratorium until global rules exist"
+    ],
+    "category": "Science"
   }
 ]
