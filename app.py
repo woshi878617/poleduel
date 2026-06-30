@@ -12,6 +12,15 @@ from flask import Flask, request, jsonify, g, send_from_directory
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 
+
+@app.after_request
+def add_cache_control(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'data.db')
 TOPICS_PATH = os.path.join(BASE_DIR, 'topics.json')
