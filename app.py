@@ -10,7 +10,7 @@ from datetime import datetime
 from functools import wraps
 from flask import Flask, request, jsonify, g, send_from_directory
 
-app = Flask(__name__, static_folder='static', static_url_path='')
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 
 
 @app.after_request

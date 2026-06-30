@@ -23,7 +23,7 @@ const I18N = (() => {
 
   async function loadLang(l) {
     try {
-      const res = await fetch(`/i18n/${l}.json`);
+      const res = await fetch(`/static/i18n/${l}.json`);
       data = await res.json();
     } catch (e) {
       console.error(`Failed to load i18n/${l}.json`, e);
