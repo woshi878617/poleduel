@@ -709,6 +709,11 @@ function renderCards() {
 }
 
 async function handleVote(topicId, optionIndex) {
+    // Prevent duplicate submissions
+    const topic = topics.find(t => t.id === topicId);
+    if (!topic || topic.voted || isAnimating) return;
+    isAnimating = true;
+
     try {
         const res = await fetch('/api/vote', {
             method: 'POST',
@@ -718,23 +723,32 @@ async function handleVote(topicId, optionIndex) {
         const data = await res.json();
 
         if (data.success) {
-            const topic = topics.find(t => t.id === topicId);
-            if (topic) {
-                topic.voted = true;
-                topic._chosen = optionIndex;
-                topic.heat = (topic.heat || 100) + 2;
-                const sr = await fetch(`/api/topics/${topicId}/stats`);
-                const statsData = await sr.json();
-                topic._stats = statsData.option_stats.map(s => ({ option: s.option_text, count: s.count }));
-                topic._country_stats = statsData.country_stats || [];
-                topic.total = statsData.total;
-            }
+            topic.voted = true;
+            topic._chosen = optionIndex;
+            topic.heat = (topic.heat || 100) + 2;
+            const sr = await fetch(`/api/topics/${topicId}/stats`);
+            const statsData = await sr.json();
+            topic._stats = statsData.option_stats.map(s => ({ option: s.option_text, count: s.count }));
+            topic._country_stats = statsData.country_stats || [];
+            topic.total = statsData.total;
+            renderCards();
+        } else if (res.status === 409) {
+            // Already voted — update local state silently
+            topic.voted = true;
+            topic._chosen = -1;
+            const sr = await fetch(`/api/topics/${topicId}/stats`);
+            const statsData = await sr.json();
+            topic._stats = statsData.option_stats.map(s => ({ option: s.option_text, count: s.count }));
+            topic._country_stats = statsData.country_stats || [];
+            topic.total = statsData.total;
             renderCards();
         } else {
             alert(data.error || I18N.t('vote_failed'));
         }
     } catch(e) {
         alert(I18N.t('network_error'));
+    } finally {
+        isAnimating = false;
     }
 }
 
