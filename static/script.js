@@ -398,7 +398,7 @@ async function init() {
     });
 
     // Login modal
-    loginBtn.addEventListener('click', () => loginModal.classList.remove('hidden'));
+    loginBtn.addEventListener('click', () => { loginModal.classList.remove('hidden'); initGoogleBtn(); });
     closeLoginBtn.addEventListener('click', () => loginModal.classList.add('hidden'));
     guestLoginBtn.addEventListener('click', guestLogin);
 
@@ -455,7 +455,7 @@ function updateUIForAuth() {
         }
     } else {
         userArea.innerHTML = `<button id="loginBtn" class="btn-login">${I18N.t('sign_in')}</button>`;
-        document.getElementById('loginBtn').addEventListener('click', () => loginModal.classList.remove('hidden'));
+        document.getElementById('loginBtn').addEventListener('click', () => { loginModal.classList.remove('hidden'); initGoogleBtn(); });
         createPollTab.classList.add('hidden');
         myPollsBtn.classList.add('hidden');
         favoritesBtn.classList.add('hidden');
