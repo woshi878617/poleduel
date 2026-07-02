@@ -114,5 +114,9 @@
   "country_unknown": "Unknown",
   "no_country_data": "No country data yet",
   "all_countries_title": "All Countries",
-  "close": "Close"
+  "close": "Close",
+
+  "share": "Share",
+  "share_copied": "Copied!",
+  "share_failed": "Failed to copy"
 }

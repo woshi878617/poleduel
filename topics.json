@@ -745,5 +745,445 @@
       "Moratorium until global rules exist"
     ],
     "category": "Science"
+  },
+  {
+    "id": 71,
+    "question": "Should AI companies be required to compensate workers displaced by automation?",
+    "category": "Technology",
+    "options": [
+      "Yes, full compensation programs required",
+      "Partial support, like retraining funding",
+      "No, market forces should handle it",
+      "Tax AI profits to fund universal safety net"
+    ]
+  },
+  {
+    "id": 72,
+    "question": "Are quantum computers an overhyped technology that won't deliver practical value in the next decade?",
+    "category": "Technology",
+    "options": [
+      "Yes, massively overhyped",
+      "Moderately hyped but real progress exists",
+      "No, breakthroughs are imminent",
+      "Quantum will complement classical, not replace it"
+    ]
+  },
+  {
+    "id": 73,
+    "question": "Should autonomous AI agents be allowed to make financial transactions without human approval?",
+    "category": "Technology",
+    "options": [
+      "Yes, with regulatory oversight",
+      "Only for small transactions under a cap",
+      "No, humans must always approve",
+      "Ban autonomous financial AI entirely"
+    ]
+  },
+  {
+    "id": 74,
+    "question": "Should FIFA drop Saudi Aramco as a World Cup sponsor given its role in global carbon emissions?",
+    "category": "World",
+    "options": [
+      "Yes, climate responsibility first",
+      "Keep sponsor but demand green pledges",
+      "No, politics should stay out of sports",
+      "FIFA should have stricter sponsor criteria"
+    ]
+  },
+  {
+    "id": 75,
+    "question": "Is the Israel-UN diplomatic clash in June 2026 evidence that the United Nations has lost its authority?",
+    "category": "World",
+    "options": [
+      "Yes, UN authority is collapsing",
+      "UN is weakened but still essential",
+      "No, isolated incidents don't define the UN",
+      "The UN needs major structural reform"
+    ]
+  },
+  {
+    "id": 76,
+    "question": "Should NATO formally extend a membership invitation to Ukraine by 2028?",
+    "category": "World",
+    "options": [
+      "Yes, invite immediately",
+      "Conditional on conflict resolution first",
+      "No, it would provoke further escalation",
+      "Ukraine should pursue neutrality instead"
+    ]
+  },
+  {
+    "id": 77,
+    "question": "Should US presidential candidates be legally required to release their tax returns?",
+    "category": "Politics",
+    "options": [
+      "Yes, make it federal law",
+      "Yes, but only for general election candidates",
+      "No, it's a personal privacy matter",
+      "Voters should decide without mandates"
+    ]
+  },
+  {
+    "id": 78,
+    "question": "Is the 'Don't King' protest movement (June 2026, 9 million participants) a sign of healthy democracy or political instability?",
+    "category": "Politics",
+    "options": [
+      "Healthy democratic expression",
+      "Legitimate but concerning in scale",
+      "Sign of dangerous political instability",
+      "Manipulated by partisan interests"
+    ]
+  },
+  {
+    "id": 79,
+    "question": "Should Supreme Court justices have term limits instead of lifetime appointments?",
+    "category": "Politics",
+    "options": [
+      "Yes, 18-year term limits",
+      "Yes, but longer (e.g. 25 years)",
+      "No, lifetime tenure protects independence",
+      "Mandatory retirement age instead"
+    ]
+  },
+  {
+    "id": 80,
+    "question": "Is the influencer economy causing more harm than good for young people's mental health and career aspirations?",
+    "category": "Society",
+    "options": [
+      "Definitely more harm",
+      "Some harm but net positive",
+      "Neither, it's just entertainment",
+      "Regulation could fix the issues"
+    ]
+  },
+  {
+    "id": 81,
+    "question": "Should employers be legally banned from contacting employees outside working hours?",
+    "category": "Society",
+    "options": [
+      "Yes, full right-to-disconnect law",
+      "Yes, with exceptions for emergencies",
+      "No, flexibility benefits both sides",
+      "Industry-specific rules, not blanket ban"
+    ]
+  },
+  {
+    "id": 82,
+    "question": "Is 'kidfluencer' content (children as social media stars managed by parents) a form of child exploitation?",
+    "category": "Society",
+    "options": [
+      "Yes, it's clear exploitation",
+      "Regulated with child labor protections",
+      "No, it's family entrepreneurship",
+      "Platforms should ban monetized kid content"
+    ]
+  },
+  {
+    "id": 83,
+    "question": "Should FIFA abandon the 48-team World Cup format after 2026 due to reduced match quality and diluted competition?",
+    "category": "Sports",
+    "options": [
+      "Yes, return to 32 teams",
+      "Reduce to 40 teams as compromise",
+      "No, expanded access is worth it",
+      "Keep 48 but change group stage format"
+    ]
+  },
+  {
+    "id": 84,
+    "question": "Is the relentless commercialization of football through mid-match advertising and sponsorship saturation destroying the sport's soul?",
+    "category": "Sports",
+    "options": [
+      "Yes, football has sold its soul",
+      "Concerning trend but manageable",
+      "No, commercialization funds the sport",
+      "Fans should boycott excessive ads"
+    ]
+  },
+  {
+    "id": 85,
+    "question": "Should countries impose a robot tax on companies that replace human workers with AI and automation?",
+    "category": "Economy",
+    "options": [
+      "Yes, to fund social programs",
+      "Tax incentives for retention, not penalties",
+      "No, it would stifle innovation",
+      "Redirect corporate tax savings from automation"
+    ]
+  },
+  {
+    "id": 86,
+    "question": "Is BRICS+ becoming a credible alternative to the G7-dominated global economic order?",
+    "category": "Economy",
+    "options": [
+      "Yes, a genuine challenger",
+      "Growing but still far behind G7",
+      "No, internal divisions will limit it",
+      "Multipolar world needs both blocs"
+    ]
+  },
+  {
+    "id": 87,
+    "question": "Should airlines face mandatory carbon rationing rather than relying on voluntary carbon offsets?",
+    "category": "Environment",
+    "options": [
+      "Yes, hard caps with penalties",
+      "Cap-and-trade system for aviation",
+      "Improve offset verification instead",
+      "No, focus on green technology first"
+    ]
+  },
+  {
+    "id": 88,
+    "question": "Is lab-grown meat a viable and ethical solution to reduce agriculture's massive environmental footprint?",
+    "category": "Environment",
+    "options": [
+      "Yes, scale it up immediately",
+      "Promising but needs more research",
+      "No, stick to plant-based alternatives",
+      "Lab-grown meat has its own ethical issues"
+    ]
+  },
+  {
+    "id": 89,
+    "question": "Should scientists actively broadcast messages to potential alien civilizations (active SETI/METI) despite unknown existential risks?",
+    "category": "Science",
+    "options": [
+      "Yes, the potential rewards outweigh risks",
+      "Only with global consensus first",
+      "No, we should only listen, not transmit",
+      "The risk debate is overblown either way"
+    ]
+  },
+  {
+    "id": 90,
+    "question": "Is human life extension technology aiming for 150+ year lifespans ethically desirable for society?",
+    "category": "Science",
+    "options": [
+      "Yes, longer healthy lives benefit all",
+      "Desirable but only if equally accessible",
+      "No, it would create unsustainable inequality",
+      "Nature should run its course, don't intervene"
+    ]
+  },
+  {
+    "id": 91,
+    "question": "Should AI development be paused until comprehensive safety regulations are in place?",
+    "category": "Technology",
+    "options": [
+      "Yes, pause immediately",
+      "Regulate in parallel without pausing",
+      "No, innovation must not be slowed",
+      "Industry self-regulation is enough"
+    ]
+  },
+  {
+    "id": 92,
+    "question": "Is TikTok's ban of 'White Lives Matter' while allowing 'Black Lives Matter' a case of political censorship?",
+    "category": "Technology",
+    "options": [
+      "Yes, clear double standard",
+      "Platform's right to moderate content",
+      "Both phrases should be treated equally",
+      "This is manufactured outrage"
+    ]
+  },
+  {
+    "id": 93,
+    "question": "Should AI data centers face a construction moratorium due to their massive energy and water consumption?",
+    "category": "Technology",
+    "options": [
+      "Yes, environmental costs are too high",
+      "Allow only in renewable-rich areas",
+      "No, AI benefits justify the costs",
+      "Let local communities decide case by case"
+    ]
+  },
+  {
+    "id": 94,
+    "question": "Is Recursive Self-Improving AI (RSI) a dangerous path that requires immediate international regulation?",
+    "category": "Technology",
+    "options": [
+      "Yes, regulate immediately",
+      "Allow research with strict safeguards",
+      "No, let innovation proceed freely",
+      "The risk is overhyped"
+    ]
+  },
+  {
+    "id": 95,
+    "question": "Was the US-Iran memorandum of understanding signed in June 2026 a genuine step toward Middle East stability?",
+    "category": "World",
+    "options": [
+      "Yes, a historic breakthrough",
+      "Skeptical, Iran won't comply long-term",
+      "It's just kicking the can down the road",
+      "Too early to judge"
+    ]
+  },
+  {
+    "id": 96,
+    "question": "Is Japan's military expansion under PM Takaichi a justified response to regional threats or a dangerous return to militarism?",
+    "category": "World",
+    "options": [
+      "Justified self-defense",
+      "Understandable but concerning",
+      "Dangerous return to militarism",
+      "Japan should remain fully pacifist"
+    ]
+  },
+  {
+    "id": 97,
+    "question": "Should the UN Security Council be reformed to add permanent seats for Africa, Latin America, and India?",
+    "category": "World",
+    "options": [
+      "Yes, full reform with veto power",
+      "Add permanent seats without veto",
+      "No, current structure works fine",
+      "Abolish the Security Council entirely"
+    ]
+  },
+  {
+    "id": 98,
+    "question": "Should Supreme Court justices have term limits instead of lifetime appointments?",
+    "category": "Politics",
+    "options": [
+      "Yes, 18-year term limits",
+      "Mandatory retirement age instead",
+      "No, lifetime tenure protects independence",
+      "Expand the court instead"
+    ]
+  },
+  {
+    "id": 99,
+    "question": "Should social media platforms be legally required to enforce age verification for all users?",
+    "category": "Politics",
+    "options": [
+      "Yes, protect minors at all costs",
+      "Yes, but with strong privacy safeguards",
+      "No, it violates anonymity rights",
+      "Parental controls are sufficient"
+    ]
+  },
+  {
+    "id": 100,
+    "question": "Is the influencer economy causing more harm than good for young people's mental health and career aspirations?",
+    "category": "Society",
+    "options": [
+      "Definitely more harm than good",
+      "Some harm but net positive",
+      "Neither, it's just entertainment",
+      "Regulation could fix the issues"
+    ]
+  },
+  {
+    "id": 101,
+    "question": "Should employers be legally banned from contacting employees outside working hours?",
+    "category": "Society",
+    "options": [
+      "Yes, full right-to-disconnect law",
+      "Yes, with exceptions for emergencies",
+      "No, flexibility benefits both sides",
+      "Industry-specific rules, not blanket ban"
+    ]
+  },
+  {
+    "id": 102,
+    "question": "Is AI displacing recent college graduates at an alarming rate, making university degrees less valuable?",
+    "category": "Society",
+    "options": [
+      "Yes, degrees are losing ROI fast",
+      "Only for certain majors and fields",
+      "No, AI creates new opportunities too",
+      "Universities need to radically adapt curricula"
+    ]
+  },
+  {
+    "id": 103,
+    "question": "Is the 48-team World Cup format diluting competition quality and making the tournament less exciting?",
+    "category": "Sports",
+    "options": [
+      "Yes, return to 32 teams",
+      "Reduce to 40 teams as compromise",
+      "No, expanded access is worth it",
+      "Keep 48 but change group stage format"
+    ]
+  },
+  {
+    "id": 104,
+    "question": "Is the relentless commercialization of football through excessive advertising destroying the sport's soul?",
+    "category": "Sports",
+    "options": [
+      "Yes, football has sold its soul",
+      "Concerning trend but manageable",
+      "No, commercialization funds the sport",
+      "Fans should boycott excessive ads"
+    ]
+  },
+  {
+    "id": 105,
+    "question": "Is the global economy entering a dangerous period of stagflation in 2026?",
+    "category": "Economy",
+    "options": [
+      "Yes, inflation and stagnation are here",
+      "Temporary turbulence, will normalize",
+      "No, growth fundamentals remain strong",
+      "Central banks will manage it effectively"
+    ]
+  },
+  {
+    "id": 106,
+    "question": "Should central banks accelerate CBDC introduction to replace physical cash?",
+    "category": "Economy",
+    "options": [
+      "Yes, it's the inevitable future",
+      "Yes, but always preserve cash option",
+      "No, privacy risks are too severe",
+      "Let private cryptocurrencies lead instead"
+    ]
+  },
+  {
+    "id": 107,
+    "question": "Should wealthy developed nations pay climate reparations to developing countries hardest hit by climate change?",
+    "category": "Environment",
+    "options": [
+      "Yes, it's a moral obligation",
+      "Invest in green tech transfer instead",
+      "No, each nation is responsible for itself",
+      "Create a global climate insurance fund"
+    ]
+  },
+  {
+    "id": 108,
+    "question": "Is lab-grown meat a viable and ethical solution to reduce agriculture's massive environmental footprint?",
+    "category": "Environment",
+    "options": [
+      "Yes, scale it up immediately",
+      "Promising but needs more research",
+      "No, stick to plant-based alternatives",
+      "Lab-grown meat has its own ethical problems"
+    ]
+  },
+  {
+    "id": 109,
+    "question": "Is quantum computing an overhyped technology that won't deliver practical value within the next decade?",
+    "category": "Science",
+    "options": [
+      "Yes, massively overhyped",
+      "Moderately hyped but real progress exists",
+      "No, breakthroughs are imminent",
+      "Quantum will complement classical computing"
+    ]
+  },
+  {
+    "id": 110,
+    "question": "Should human life extension technology aiming for 150+ year lifespans be actively pursued and funded?",
+    "category": "Science",
+    "options": [
+      "Yes, longer healthy lives benefit all",
+      "Yes, but only if equally accessible",
+      "No, it would create unsustainable inequality",
+      "Nature should run its course, don't intervene"
+    ]
   }
 ]

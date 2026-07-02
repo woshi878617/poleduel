@@ -114,5 +114,9 @@
   "country_unknown": "未知",
   "no_country_data": "暂无国家数据",
   "all_countries_title": "所有国家",
-  "close": "关闭"
+  "close": "关闭",
+
+  "share": "分享",
+  "share_copied": "已复制!",
+  "share_failed": "复制失败"
 }

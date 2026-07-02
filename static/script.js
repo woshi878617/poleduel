@@ -638,6 +638,7 @@ function renderCards() {
                         <span class="stat-label">${escapeHtml(s.option || '')}</span>
                         <div class="stat-bar-track"><div class="stat-bar-fill" style="width:${t.total ? (s.count/t.total*100) : 0}%"></div></div>
                         <span class="stat-count">${s.count || 0}</span>
+                        <span class="stat-pct">${t.total ? Math.round(s.count/t.total*100) : 0}%</span>
                     </div>
                 `).join('')}
             </div>
@@ -651,7 +652,11 @@ function renderCards() {
                 <button class="btn-push" data-topic="${t.id}" data-action="push">${I18N.t('push')}</button>
                 <span class="card-heat" id="heat-${t.id}">${t.heat || 100}</span>
                 <button class="btn-skip" data-topic="${t.id}" data-action="${t.voted ? 'next' : 'skip'}">${t.voted ? I18N.t('next_one') : I18N.t('skip')}</button>
-            </div>`;
+            </div>
+            ${t.voted ? `<div class="card-share">
+                <button class="btn-share" onclick="shareTopic(event, ${t.id})">${I18N.t('share')}</button>
+                <span class="share-tooltip hidden" id="share-tip-${t.id}">${I18N.t('share_copied')}</span>
+            </div>` : ''}`;
 
         cardStack.appendChild(card);
 
@@ -1376,6 +1381,42 @@ async function loadAllTopicStats() {
         } catch(e) { /* ignore */ }
     }
     if (updated) renderCards();
+}
+
+// ── Share ──────────────────────────────────────────────
+function shareTopic(event, topicId) {
+    event.stopPropagation();
+    const topic = topics.find(t => t.id === topicId);
+    if (!topic) return;
+    
+    const shareText = `${topic.question}\n\n${topic.options.map((opt, i) => {
+        const stats = topic._stats?.[i];
+        const count = stats?.count || 0;
+        const pct = topic.total ? Math.round(count/topic.total*100) : 0;
+        return `${opt}: ${count} (${pct}%)`;
+    }).join('\n')}\n\nVote on ControveRUS: https://poleduel.com`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'ControveRUS Poll Results',
+            text: shareText,
+            url: `https://poleduel.com?topic=${topicId}`
+        }).catch(() => fallbackCopy(shareText, topicId));
+    } else {
+        fallbackCopy(shareText, topicId);
+    }
+}
+
+function fallbackCopy(text, topicId) {
+    navigator.clipboard.writeText(text).then(() => {
+        const tip = document.getElementById(`share-tip-${topicId}`);
+        if (tip) {
+            tip.classList.remove('hidden');
+            setTimeout(() => tip.classList.add('hidden'), 2000);
+        }
+    }).catch(() => {
+        alert(I18N.t('share_failed'));
+    });
 }
 
 // ── Utility ─────────────────────────────────────────────
