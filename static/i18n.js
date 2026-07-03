@@ -9,9 +9,7 @@ const I18N = (() => {
     // 1. localStorage
     const saved = localStorage.getItem('poleduel_lang');
     if (saved && SUPPORTED.includes(saved)) return saved;
-    // 2. browser language
-    const navLang = (navigator.language || '').split('-')[0];
-    if (navLang === 'zh') return 'zh';
+    // 2. default to English for all new users
     return 'en';
   }
 
@@ -23,7 +21,7 @@ const I18N = (() => {
 
   async function loadLang(l) {
     try {
-      const res = await fetch(`/static/i18n/${l}.json`);
+      const res = await fetch(`/static/i18n/${l}.json?v=20260702`);
       data = await res.json();
     } catch (e) {
       console.error(`Failed to load i18n/${l}.json`, e);

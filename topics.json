@@ -1185,5 +1185,245 @@
       "No, it would create unsustainable inequality",
       "Nature should run its course, don't intervene"
     ]
+  },
+  {
+    "id": 111,
+    "question": "Will scaling up LLMs alone (more parameters, more data) lead to AGI, or do we need fundamentally new architectures?",
+    "category": "Technology",
+    "options": [
+      "Scaling up is enough, AGI is near",
+      "New architectures are essential",
+      "AGI is decades away regardless",
+      "AGI may never be achievable"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 112,
+    "question": "Should governments block foreign access to frontier AI models over national security concerns?",
+    "category": "Technology",
+    "options": [
+      "Yes, national security first",
+      "Only with independent oversight",
+      "No, it stifles global innovation",
+      "Case-by-case review required"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 113,
+    "question": "Is AI consciousness research a red line that humanity should never cross?",
+    "category": "Technology",
+    "options": [
+      "Yes, ban all consciousness research",
+      "Regulate heavily but allow study",
+      "No, pursue it openly",
+      "Consciousness in AI is impossible anyway"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 114,
+    "question": "Should AI-generated political deepfakes be completely banned during election periods?",
+    "category": "Technology",
+    "options": [
+      "Yes, total ban with penalties",
+      "Label AI content, don't ban it",
+      "No, it's protected free speech",
+      "Platforms should self-regulate"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 115,
+    "question": "Was China's sanction of the Philippine Defense Secretary a justified diplomatic move?",
+    "category": "World",
+    "options": [
+      "Yes, justified countermeasure",
+      "Proportional but escalatory",
+      "No, diplomatic overreaction",
+      "Both sides should de-escalate"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 116,
+    "question": "Should the US deploy military forces to intervene in the Middle East conflict?",
+    "category": "World",
+    "options": [
+      "Yes, intervene now",
+      "Support allies without troops",
+      "No, avoid foreign entanglements",
+      "UN-led coalition instead"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 117,
+    "question": "Should political candidates be required to pass a basic civics test before running for office?",
+    "category": "Politics",
+    "options": [
+      "Yes, basic competency required",
+      "No, it could be weaponized",
+      "Voters should decide, not tests",
+      "Only for federal-level offices"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 118,
+    "question": "Is political polarization in Western democracies reaching an irreversible breaking point?",
+    "category": "Politics",
+    "options": [
+      "Yes, damage is permanent",
+      "Reversible with major reforms",
+      "No, democracies are resilient",
+      "Polarization is overhyped by media"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 119,
+    "question": "Is the barefoot vs shoes debate on airplanes a legitimate hygiene concern or classist gatekeeping?",
+    "category": "Society",
+    "options": [
+      "Legitimate hygiene concern",
+      "Classist gatekeeping",
+      "Both sides have valid points",
+      "Airlines should set clear rules"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 120,
+    "question": "Is the rising trend of solo living by choice a sign of social progress or social decay?",
+    "category": "Society",
+    "options": [
+      "Sign of social progress",
+      "Sign of social decay",
+      "Neither, just lifestyle diversity",
+      "Economic necessity, not choice"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 121,
+    "question": "Should school uniforms be abolished to promote student individuality?",
+    "category": "Society",
+    "options": [
+      "Yes, abolish uniforms",
+      "Keep uniforms, they reduce inequality",
+      "Optional uniform policy",
+      "Depends on school level"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 122,
+    "question": "Should pet ownership require a mandatory license and training course?",
+    "category": "Society",
+    "options": [
+      "Yes, license and training required",
+      "License but no training",
+      "No, it's government overreach",
+      "Only for certain breeds"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 123,
+    "question": "Was hosting a WWE-style cage fight at the White House for Trump's 80th birthday inappropriate?",
+    "category": "Sports",
+    "options": [
+      "Yes, undignified for a national symbol",
+      "Unconventional but acceptable",
+      "No, the president can celebrate how he wants",
+      "Focus should be on policy, not parties"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 124,
+    "question": "Should professional athletes be penalized for refusing to stand during national anthems?",
+    "category": "Sports",
+    "options": [
+      "Yes, penalize them",
+      "Protect protest as free speech",
+      "No penalty, but public criticism is fair",
+      "Leagues should stay neutral"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 125,
+    "question": "Should transgender athletes be allowed to compete in women's sports categories?",
+    "category": "Sports",
+    "options": [
+      "Yes, full inclusion",
+      "Case-by-case based on science",
+      "Open category for all athletes",
+      "No, biological sex categories only"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 126,
+    "question": "Is FIFA's dynamic pricing model for 2026 World Cup tickets a fair market practice?",
+    "category": "Sports",
+    "options": [
+      "Yes, supply and demand",
+      "Unfair to ordinary fans",
+      "FIFA should cap prices",
+      "Dynamic pricing with fan quotas"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 127,
+    "question": "Are buy-now-pay-later services a helpful financial tool or a debt trap for young consumers?",
+    "category": "Economy",
+    "options": [
+      "Helpful financial tool",
+      "Dangerous debt trap",
+      "Regulated properly, it can work",
+      "Ban BNPL for under-25s"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 128,
+    "question": "Is the European Central Bank's rate hike worsening Germany's slide into recession?",
+    "category": "Economy",
+    "options": [
+      "Yes, hurting growth badly",
+      "Necessary to control inflation",
+      "ECB should cut rates immediately",
+      "Germany needs fiscal stimulus instead"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 129,
+    "question": "Should fossil-fuel-producing nations be barred from hosting UN climate summits?",
+    "category": "Environment",
+    "options": [
+      "Yes, clear conflict of interest",
+      "Allow participation but not presidency",
+      "No, all nations must be included",
+      "Impose transparency rules instead"
+    ],
+    "hot": 100
+  },
+  {
+    "id": 130,
+    "question": "Should human germline gene editing be legalized for consumer enhancement beyond disease prevention?",
+    "category": "Science",
+    "options": [
+      "Yes, parental choice matters",
+      "Only for disease prevention",
+      "No, it's unethical eugenics",
+      "Global moratorium until rules exist"
+    ],
+    "hot": 100
   }
 ]
