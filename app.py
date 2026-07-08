@@ -953,7 +953,7 @@ def get_comments(topic_id):
         """SELECT c.id, c.topic_id, c.user_id, c.content, c.created_at,
                   u.display_name, u.avatar_url
            FROM comments c
-           JOIN users u ON c.user_id = u.id
+           JOIN users u ON c.user_id::INT = u.id
            WHERE c.topic_id = %s
            ORDER BY c.created_at ASC""",
         (str(topic_id),)
