@@ -1019,6 +1019,118 @@ def create_comment(topic_id):
     }), 201
 
 
+# ── SEO static pages ──────────────────────────────────────
+
+TOPIC_PAGE_TEMPLATE = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{question} | ControveRUS</title>
+    <meta name="description" content="Vote now: {question}. Join the global debate on ControveRUS and see how the world votes.">
+    <meta property="og:title" content="{question} | ControveRUS">
+    <meta property="og:description" content="Vote on this controversial topic: {question}. See real-time statistics and join the debate.">
+    <meta property="og:url" content="https://poleduel.com/topic/{topic_id}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{question} | ControveRUS">
+    <meta name="twitter:description" content="Vote on this controversial topic and see how the world thinks.">
+    <link rel="canonical" href="https://poleduel.com/topic/{topic_id}">
+    <script type="application/ld+json">
+    {{
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "{question}",
+      "description": "Vote on this controversial topic on ControveRUS. {question}",
+      "url": "https://poleduel.com/topic/{topic_id}",
+      "isPartOf": {{
+        "@type": "WebSite",
+        "name": "ControveRUS",
+        "url": "https://poleduel.com"
+      }}
+    }}
+    </script>
+    <style>
+        * {{ margin:0; padding:0; box-sizing:border-box; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0f1f; color: #e0e6f0; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; }}
+        .card {{ background: linear-gradient(145deg, #121830, #0d1226); border: 1px solid rgba(100,140,255,0.2); border-radius:16px; padding:40px 32px; max-width:600px; width:100%; text-align:center; box-shadow:0 8px 40px rgba(0,0,0,0.5); }}
+        h1 {{ font-size:1.6em; margin-bottom:24px; line-height:1.4; }}
+        .category {{ display:inline-block; background:rgba(100,140,255,0.15); color:#8aa0f0; padding:4px 14px; border-radius:20px; font-size:0.85em; margin-bottom:20px; }}
+        .options {{ display:flex; flex-direction:column; gap:12px; margin:24px 0; }}
+        .option {{ background:rgba(100,140,255,0.08); border:1px solid rgba(100,140,255,0.25); border-radius:10px; padding:14px 20px; font-size:1.05em; cursor:pointer; transition:all 0.2s; text-align:left; color:#c8d4f0; }}
+        .option:hover {{ background:rgba(100,140,255,0.18); border-color:rgba(100,140,255,0.5); }}
+        .cta {{ display:inline-block; margin-top:20px; padding:12px 32px; background:linear-gradient(135deg, #4a6cf7, #6c8aff); color:#fff; border-radius:10px; text-decoration:none; font-weight:600; font-size:1.05em; transition:transform 0.2s; }}
+        .cta:hover {{ transform:scale(1.03); }}
+        .footer {{ margin-top:40px; color:#5a6a90; font-size:0.85em; }}
+        .footer a {{ color:#8aa0f0; text-decoration:none; }}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="category">{category}</div>
+        <h1>{question}</h1>
+        <div class="options">
+            {options_html}
+        </div>
+        <a class="cta" href="https://poleduel.com/?topic={topic_id}">Open in ControveRUS &rarr;</a>
+        <p style="margin-top:12px;color:#5a6a90;font-size:0.85em;">Click any option to open the full voting experience</p>
+    </div>
+    <div class="footer">
+        <a href="https://poleduel.com">ControveRUS</a> &mdash; Duel-style voting on controversial topics
+    </div>
+</body>
+</html>'''
+
+
+@app.route('/topic/<int:topic_id>')
+def topic_page(topic_id):
+    topics = load_preset_topics()
+    topic = next((t for t in topics if t['id'] == topic_id), None)
+    if not topic:
+        return 'Topic not found', 404
+
+    options_html = '\n'.join(
+        f'<div class="option">{o}</div>'
+        for o in topic['options']
+    )
+
+    html = TOPIC_PAGE_TEMPLATE.format(
+        topic_id=topic_id,
+        question=topic['question'],
+        category=topic.get('category', 'General'),
+        options_html=options_html
+    )
+    return html
+
+
+@app.route('/robots.txt')
+def robots():
+    content = 'User-agent: *\nAllow: /\nSitemap: https://poleduel.com/sitemap.xml\n'
+    response = app.make_response(content)
+    response.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    return response
+
+
+@app.route('/sitemap.xml')
+def sitemap():
+    topics = load_preset_topics()
+    urls = [
+        'https://poleduel.com/',
+    ]
+    for t in topics:
+        urls.append(f'https://poleduel.com/topic/{t["id"]}')
+
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for url in urls:
+        xml += f'  <url><loc>{url}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>\n'
+    xml += '</urlset>'
+
+    response = app.make_response(xml)
+    response.headers['Content-Type'] = 'application/xml; charset=utf-8'
+    return response
+
+
 # ── Main ──────────────────────────────────────────────────
 
 # Auto-initialize database on import (for gunicorn)
