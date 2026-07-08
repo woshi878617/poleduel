@@ -150,11 +150,11 @@
 
     <!-- Google client ID config (set by server or default) -->
     <script>
-        window.GOOGLE_CLIENT_ID = '';
+        window.GOOGLE_CLIENT_ID = '210952683470-lm1cs41bggu7r77kqprto2lb929cahl2.apps.googleusercontent.com';
         fetch('/api/config').then(r => r.json()).then(c => {
-            window.GOOGLE_CLIENT_ID = c.google_client_id || '';
-            if (window.GOOGLE_CLIENT_ID) initGoogleBtn();
+            if (c.google_client_id) window.GOOGLE_CLIENT_ID = c.google_client_id;
         }).catch(() => {});
+        initGoogleBtn();
     </script>
     <!-- SEO Meta Tags -->
     <meta name="description" content="Vote on controversial topics from around the world. Join debates, see real-time stats, and share your opinion on politics, sports, culture and more.">
@@ -167,6 +167,6 @@
     <meta name="twitter:title" content="ControveRUS - Vote on Controversial Topics">
     <meta name="twitter:description" content="Join global debates. Vote on hot topics, see real-time statistics.">
     <meta name="twitter:image" content="https://poleduel.com/static/og-image.png">
-    <script src="/static/script.js?v=20260702"></script>
+    <script src="/static/script.js?v=20260708"></script>
 </body>
 </html>

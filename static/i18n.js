@@ -6,25 +6,30 @@ const I18N = (() => {
   const SUPPORTED = ['en', 'zh'];
 
   function detectLang() {
-    // 1. localStorage
     const saved = localStorage.getItem('poleduel_lang');
     if (saved && SUPPORTED.includes(saved)) return saved;
-    // 2. default to English for all new users
     return 'en';
   }
 
   async function init(initialLang) {
     lang = initialLang || detectLang();
-    await loadLang(lang);
+    const ok = await loadLang(lang);
+    if (!ok) {
+      lang = 'en';
+      await loadLang('en');
+    }
     applyToDOM();
   }
 
   async function loadLang(l) {
     try {
-      const res = await fetch(`/static/i18n/${l}.json?v=20260702`);
+      const res = await fetch(`/static/i18n/${l}.json?v=20260704`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       data = await res.json();
+      return true;
     } catch (e) {
       console.error(`Failed to load i18n/${l}.json`, e);
+      return false;
     }
   }
 
@@ -60,11 +65,11 @@ const I18N = (() => {
 
   async function switchLang(l) {
     if (l === lang || !SUPPORTED.includes(l)) return;
+    const ok = await loadLang(l);
+    if (!ok) return;
     lang = l;
     localStorage.setItem('poleduel_lang', l);
-    await loadLang(l);
     applyToDOM();
-    // Trigger a re-render callback if set
     if (typeof window._onLangChange === 'function') {
       window._onLangChange(l);
     }
