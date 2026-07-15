@@ -535,17 +535,21 @@ function initGoogleBtn() {
         googleBtnContainer.innerHTML = `<p style="color:var(--text-dim);font-size:12px;">${I18N.t('google_not_configured')}</p>`;
         return;
     }
-    google.accounts.id.initialize({
-        client_id: window.GOOGLE_CLIENT_ID,
-        callback: (response) => googleLogin(response.credential),
-        auto_select: false,
-    });
-    google.accounts.id.renderButton(googleBtnContainer, {
-        theme: 'filled_black',
-        size: 'large',
-        width: '100%',
-        text: 'signin_with',
-        shape: 'rectangular',
+    loadGoogleSDK().then(() => {
+        google.accounts.id.initialize({
+            client_id: window.GOOGLE_CLIENT_ID,
+            callback: (response) => googleLogin(response.credential),
+            auto_select: false,
+        });
+        google.accounts.id.renderButton(googleBtnContainer, {
+            theme: 'filled_black',
+            size: 'large',
+            width: '100%',
+            text: 'signin_with',
+            shape: 'rectangular',
+        });
+    }).catch(() => {
+        googleBtnContainer.innerHTML = `<p style="color:var(--text-dim);font-size:12px;">${I18N.t('google_not_configured')}</p>`;
     });
 }
 
@@ -554,17 +558,19 @@ function initGoogleBindBtn() {
     const container = document.getElementById('googleBindContainer');
     if (!container) return;
     container.innerHTML = '';
-    google.accounts.id.initialize({
-        client_id: window.GOOGLE_CLIENT_ID,
-        callback: (response) => bindGoogle(response.credential),
-        auto_select: false,
-    });
-    google.accounts.id.renderButton(container, {
-        theme: 'filled_black',
-        size: 'small',
-        text: 'signin_with',
-        shape: 'rectangular',
-    });
+    loadGoogleSDK().then(() => {
+        google.accounts.id.initialize({
+            client_id: window.GOOGLE_CLIENT_ID,
+            callback: (response) => bindGoogle(response.credential),
+            auto_select: false,
+        });
+        google.accounts.id.renderButton(container, {
+            theme: 'filled_black',
+            size: 'small',
+            text: 'signin_with',
+            shape: 'rectangular',
+        });
+    }).catch(() => { /* SDK load failed, button won't render */ });
 }
 
 async function bindGoogle(credential) {
@@ -944,6 +950,9 @@ function navigate(direction) {
         currentIndex = newIndex;
         isAnimating = false;
         renderCards();
+        // Lazy-load comments for the newly active topic
+        const activeTopic = topics[currentIndex];
+        if (activeTopic) fetchComments(activeTopic.id);
     }, 400);
 }
 
