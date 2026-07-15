@@ -1019,6 +1019,65 @@ def create_comment(topic_id):
     }), 201
 
 
+# ── Stats dashboard ───────────────────────────────────────
+
+@app.route('/api/stats/summary')
+def stats_summary():
+    db = get_db()
+    topics = load_preset_topics()
+
+    # Total unique voters (by IP)
+    unique_voters = db.execute("SELECT COUNT(DISTINCT ip_address) FROM votes").fetchone()['count']
+
+    # Total votes
+    total_votes = db.execute("SELECT COUNT(*) FROM votes").fetchone()['count']
+
+    # Total topics
+    total_topics = len(topics)
+
+    # User topics count
+    user_topics_count = db.execute("SELECT COUNT(*) FROM user_topics").fetchone()['count']
+
+    # Total users (guest + google)
+    total_users = db.execute("SELECT COUNT(*) FROM users").fetchone()['count']
+    google_users = db.execute("SELECT COUNT(*) FROM users WHERE auth_type = 'google'").fetchone()['count']
+
+    # Push count
+    push_count = db.execute("SELECT COUNT(*) FROM push_logs WHERE action = 'push'").fetchone()['count']
+    skip_count = db.execute("SELECT COUNT(*) FROM push_logs WHERE action = 'skip'").fetchone()['count']
+
+    # Top 5 voted topics
+    top_topics_rows = db.execute(
+        "SELECT topic_id, COUNT(*) as cnt FROM votes GROUP BY topic_id ORDER BY cnt DESC LIMIT 5"
+    ).fetchall()
+    top_topics = []
+    for r in top_topics_rows:
+        t = next((t for t in topics if t['id'] == r['topic_id']), None)
+        top_topics.append({
+            'id': r['topic_id'],
+            'question': t['question'] if t else 'Unknown',
+            'votes': r['cnt']
+        })
+
+    # Country distribution
+    country_rows = db.execute(
+        "SELECT country, COUNT(DISTINCT ip_address) as cnt FROM votes WHERE country != '未知' GROUP BY country ORDER BY cnt DESC LIMIT 10"
+    ).fetchall()
+
+    return jsonify({
+        'unique_voters': unique_voters,
+        'total_votes': total_votes,
+        'total_topics': total_topics,
+        'user_topics': user_topics_count,
+        'total_users': total_users,
+        'google_users': google_users,
+        'total_pushes': push_count,
+        'total_skips': skip_count,
+        'top_topics': top_topics,
+        'top_countries': [{'country': r['country'], 'voters': r['cnt']} for r in country_rows]
+    })
+
+
 # ── SEO static pages ──────────────────────────────────────
 
 TOPIC_PAGE_TEMPLATE = '''<!DOCTYPE html>
